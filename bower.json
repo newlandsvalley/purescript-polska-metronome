@@ -1,0 +1,19 @@
+{
+  "name": "polska-metronome",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "output"
+  ],
+  "dependencies": {
+    "purescript-prelude": "^4.1.0",
+    "purescript-drawing": "^4.0.0",
+    "purescript-behaviors": "^7.0.0",
+    "purescript-webaudio" : "^0.1.2",
+    "purescript-affjax": "^6.0.0"
+  },
+  "devDependencies": {
+    "purescript-psci-support": "^4.0.0"
+  }
+}

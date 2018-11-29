@@ -1,0 +1,9 @@
+/bower_components/
+/node_modules/
+/.pulp-cache/
+/deprecated/
+/output/
+/dist/metronome.js
+/.psc*
+/.psa*
+/.purs-repl
