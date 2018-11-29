@@ -18,7 +18,7 @@ import Network.HTTP.Affjax (affjax, defaultRequest)
 import Network.HTTP.Affjax.Response as Response
 import Metronome.Beat (Beat(..))
 
--- | an index into the buffer sound for each Beat type
+-- | an index into the buffer sound for each Beat number
 type BeatMap = Map Int AudioBuffer
 
 -- | Beat Sounds in Web-Audio

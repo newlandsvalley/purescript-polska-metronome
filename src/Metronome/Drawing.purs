@@ -5,8 +5,8 @@ import Metronome.Beat
 import Color (Color, rgb, white)
 import Data.Int (toNumber)
 import Graphics.Drawing (Drawing, circle, rectangle, filled, fillColor)
-import Math ((%), cos, pi, sin)
-import Prelude ((*), (+), (-), (<>))
+import Math (cos, pi, sin)
+import Prelude ((*), (+), (-), (/), (<>))
 
 -- | the radius of the outline of a big static circle
 bigCircleRadius :: Number
@@ -53,43 +53,69 @@ staticCircle x =
       (circle x yPos smallCircleRadius)
 
 -- | Create a drawing of a moving circle which alters position
--- | according to the beat
-movingCircle :: Beat -> Drawing
-movingCircle (Beat { number, proportion }) =
+-- | according to the beat and which may be skewed smaller
+-- | (beat 0) or bigger (beat 1)
+movingCircle :: Number -> Beat -> Drawing
+movingCircle skew (Beat { number, proportion }) =
   let
+    deltaRadius = skew * circleForwardRotationRadius
+    -- pi / 2.0 is the ration of the circumference of a semicircle to the diameter
+    -- a circle made bigger by the skew is traced more slowly
+    deltaProportion = skew * proportion * pi / 2.0
     radius =
       case number of
-        2 -> circleBackRotationRadius      -- big circle back
-        _ -> circleForwardRotationRadius   -- small circle forward
+        -- big circle back
+        2 -> circleBackRotationRadius
+        -- small circle forward possibly skewed bigger
+        1 -> circleForwardRotationRadius + deltaRadius
+        -- small circle forward  possibly skewed smaller
+        _ -> circleForwardRotationRadius - deltaRadius
     centreX =
       case number of
-        0 -> leftMargin + circleForwardRotationRadius
-        1 -> leftMargin + (3.0 * circleForwardRotationRadius)
-        _ -> leftMargin + circleBackRotationRadius
+        -- circle back is centered statically
+        2 -> leftMargin + circleBackRotationRadius
+        -- first circle forward will have its centre shifted left if skewed
+        1 -> leftMargin + (3.0 * circleForwardRotationRadius) - deltaRadius
+        -- second circle forward will also have its centre shifted left if skewed
+        _ -> leftMargin + circleForwardRotationRadius - deltaRadius
     centreY = yPos
     theta =
       case number of
-        2 -> proportion * pi            -- backwards
-        _ -> (1.0 - proportion) * pi    -- forwards
+        2 -> proportion * pi                                -- backwards
+        1 -> (1.0 - (proportion - deltaProportion)) * pi    -- forwards
+        _ -> (1.0 - (proportion + deltaProportion)) * pi    -- forwards
     x = centreX + (radius * cos theta)
     y =
       case number of
         2 ->
           centreY - (radius * sin theta * 0.5)  -- down
         _ ->
-          centreY + (radius * sin theta * 0.5)  -- uo
+          centreY + (radius * sin theta * 0.5)  -- up
   in
     filled
       (fillColor blue)
       (circle x y smallCircleRadius)
 
+-- beat markers 0 and 2 are fixed
 beatMarker :: Int -> Drawing
 beatMarker beatNumber =
   let
-    xPos = (toNumber beatNumber) % 3.0 * (2.0 * circleForwardRotationRadius)
+    xPos = (toNumber beatNumber) * (2.0 * circleForwardRotationRadius)
+                    + leftMargin
+  in
+    staticCircle xPos
+
+-- the beat 1 marker may be skewed 'early' by an amount 'skew'
+-- which should be in the range 0 <= skew <= about 0.5
+skewedBeat1Marker :: Number -> Drawing
+skewedBeat1Marker skew =
+  let
+    delta = skew * circleForwardRotationRadius
+    xPos = (2.0 * (circleForwardRotationRadius - delta))
            + leftMargin
   in
     staticCircle xPos
+
 
 backdrop :: Drawing
 backdrop
@@ -97,10 +123,10 @@ backdrop
       (fillColor white)
       (rectangle 0.0 0.0 800.0 800.0)
 
-markers :: Beat -> Drawing
-markers beat =
+markers :: Number -> Beat -> Drawing
+markers skew beat =
     backdrop
       <> (beatMarker 0)
-      <> (beatMarker 1)
+      <> (skewedBeat1Marker skew)
       <> (beatMarker 2)
-      <> movingCircle beat
+      <> movingCircle skew beat

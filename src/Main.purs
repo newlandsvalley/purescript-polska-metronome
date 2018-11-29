@@ -23,9 +23,11 @@ main =
     audioCtx <- liftEffect newAudioContext
     beatMap <- loadBeatBuffers audioCtx "assets/audio" ["hightom.mp3", "tom.mp3", "hihat.mp3"]
     mcanvas <- liftEffect $ getCanvasElementById "canvas"
-    let canvas = unsafePartial (fromJust mcanvas)
+    let
+      canvas = unsafePartial (fromJust mcanvas)
+      skew = 0.3
     graphicsCtx <- liftEffect $ getContext2D canvas
-    _ <- liftEffect $ animate (toBeats bpm seconds) \beat -> do
-           _ <- render graphicsCtx (markers beat)
+    _ <- liftEffect $ animate (toBeats skew bpm seconds) \beat -> do
+           _ <- render graphicsCtx (markers skew beat)
            playBeat audioCtx beatMap beat
     pure unit
