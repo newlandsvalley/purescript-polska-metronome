@@ -1,4 +1,5 @@
-module Metronome.Drawing where
+module Metronome.Drawing
+  (markers, metronome) where
 
 import Metronome.Beat
 
@@ -33,7 +34,7 @@ leftMargin =
 
 -- | everything is placed relative to the same vertical y coordinate
 yPos :: Number
-yPos = 200.0
+yPos = 180.0
 
 red :: Color
 red = rgb 200 0 0
@@ -129,4 +130,8 @@ markers skew beat =
       <> (beatMarker 0)
       <> (skewedBeat1Marker skew)
       <> (beatMarker 2)
-      <> movingCircle skew beat
+
+metronome :: Number -> Beat -> Drawing
+metronome skew beat =
+  markers skew beat
+    <> movingCircle skew beat

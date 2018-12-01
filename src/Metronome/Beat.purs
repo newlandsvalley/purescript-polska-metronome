@@ -1,23 +1,16 @@
 module Metronome.Beat
-  (Beat(..), Bpm, bpm, toBeats) where
+  (Beat(..), Bpm, beatStart, toBeats) where
 
-import Prelude (class Eq, class Show, (*), (-), (/), (>), ($), (<>), map, show)
-import Data.Int (toNumber, floor)
+import Prelude (class Eq, class Show, (*), (-), (/), (>), (<>), map, show)
+import Data.Int (toNumber)
 import Data.Tuple (Tuple(..))
 import Math ((%))
 import Data.Newtype (class Newtype)
 import Data.Time.Duration (Seconds(..))
 import FRP.Behavior (Behavior)
 
--- | we use strict 3/4 time at the moment
--- | (not skewed polska time)
-
+-- | The tempo in Beats Per Minute (bpm)
 type Bpm = Int
-
--- | we use 1/4=120 at the moment
--- | we'll allow the user to vary this later
-bpm :: Bpm
-bpm = 120
 
 beatDuration :: Bpm -> Number
 beatDuration b =
@@ -27,6 +20,9 @@ polskaMeasureDuration ::  Bpm -> Number
 polskaMeasureDuration b =
   (3.0 * 60.0 * 1000.0 / (toNumber b))
 
+-- | A Beat or a proporion of a beat within a 3/4 rhythm
+-- | number is the beat number (0 - 3)
+-- | proportion is the proportion of the beat that is so far completed (0.0 - 1.0)
 newtype Beat = Beat
   { number :: Int
   , proportion :: Number
@@ -57,17 +53,15 @@ elapsedTimeToBeat skew b (Seconds s) =
   in
     Beat { number, proportion }
 
-
-{-
-elapsedTimeToBeat :: Bpm -> Seconds -> Beat
-elapsedTimeToBeat b (Seconds s) =
-  let
-    thisMeasure = (s * 1000.0) % (polskaMeasureDuration b)
-  in
-    Beat { number : (floor $ thisMeasure / beatDuration b), proportion : ((thisMeasure % beatDuration b) /  (beatDuration b)) }
--}
-
-
+-- | convert a Behavior in elapsed time (seconds) to a Behavior in Beats
 toBeats :: Number -> Bpm -> Behavior Seconds -> Behavior Beat
 toBeats skew b secs =
   map (elapsedTimeToBeat skew b) secs
+
+-- | the beat start is the beginning of the first beat in 3/4
+beatStart :: Beat
+beatStart =
+  Beat
+    { number : 0
+    , proportion : 0.0
+    }

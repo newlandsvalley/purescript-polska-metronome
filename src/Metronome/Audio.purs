@@ -1,9 +1,11 @@
-module Metronome.Audio where
+module Metronome.Audio
+  (BeatMap, loadBeatBuffers, playBeat) where
 
 import Prelude
 
 import Audio.WebAudio.AudioBufferSourceNode (defaultStartOptions, setBuffer, startBufferSource)
-import Audio.WebAudio.BaseAudioContext (createBufferSource, currentTime, decodeAudioDataAsync, destination)
+import Audio.WebAudio.BaseAudioContext (createBufferSource, createGain, currentTime, decodeAudioDataAsync, destination)
+import Audio.WebAudio.GainNode (setGain)
 import Audio.WebAudio.Types (AudioContext, AudioBuffer, connect)
 import Control.Parallel (parallel, sequential)
 import Data.Array ((!!))
@@ -81,14 +83,24 @@ playBeat ctx beatMap (Beat { number, proportion }) =
   if (proportion > 0.035 ) then
     pure unit
   else
-    case lookup number beatMap of
-      Just buffer ->
-        do
-          startTime <- currentTime ctx
-          src <- createBufferSource ctx
-          dst <- destination ctx
-          _ <- connect src dst
-          _ <- setBuffer buffer src
-          startBufferSource defaultStartOptions src
-      _ ->
-        pure unit
+    let
+      volume =
+        -- make the second beat quieter than the other two
+        case number of
+          1 -> 0.4
+          _ -> 1.0
+    in
+      case lookup number beatMap of
+        Just buffer ->
+          do
+            startTime <- currentTime ctx
+            src <- createBufferSource ctx
+            gain <- createGain ctx
+            _ <- setGain volume gain
+            dst <- destination ctx
+            _ <- connect src gain
+            _ <- connect gain dst
+            _ <- setBuffer buffer src
+            startBufferSource defaultStartOptions src
+        _ ->
+          pure unit
