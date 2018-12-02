@@ -74,7 +74,7 @@ component =
          [HH.text "Polska Metronome" ]
       , HH.canvas
          [ HP.id_ "canvas"
-         , HP.height 300
+         , HP.height 350
          , HP.width  800
          ]
       , renderStopStart state
@@ -98,7 +98,7 @@ component =
     graphicsCtx <- H.liftEffect  $ getContext2D canvas
     runningMetronome <- H.liftEffect  $ animate (toBeats state.skew state.bpm seconds) \beat -> do
          _ <- Drawing.render graphicsCtx (metronome state.skew beat)
-         playBeat audioCtx state.beatMap beat
+         playBeat audioCtx state.bpm state.skew state.beatMap beat
     _ <- H.modify (\st -> st { mGraphicsContext = Just graphicsCtx
                              , isRunning = true
                              , runningMetronome = runningMetronome })
@@ -107,15 +107,13 @@ component =
     _ <- stopAnimation
     pure next
   eval (ChangeTempo bpm next) = do
+    state <- H.get
     _ <- stopAnimation
     _ <- H.modify (\st -> st { bpm = bpm })
     pure next
   eval (ChangeSkew skew next) = do
     state <- H.get
-    let
-      graphicsCtx = unsafePartial (fromJust state.mGraphicsContext)
     _ <- stopAnimation
-    _ <- H.liftEffect $ Drawing.render graphicsCtx (markers skew beatStart)
     _ <- H.modify (\st -> st { skew = skew })
     pure next
 
@@ -165,7 +163,7 @@ renderTempoSlider state =
 renderSkewSlider :: State ->  H.ComponentHTML Query
 renderSkewSlider state =
   let
-     -- | get the value from the slider result, defaulting to 120
+     -- | get the value from the slider result, defaulting to 0
     toSkew :: String -> Number
     toSkew s =
       (readFloat s) / 100.0
@@ -174,7 +172,7 @@ renderSkewSlider state =
       [ HP.class_ (H.ClassName "leftPanelComponent")]
       [ HH.label
          [ HP.class_ (H.ClassName "labelAlignment") ]
-         [ HH.text "skew 2nd beat:" ]
+         [ HH.text "shift 2nd beat:" ]
 
       , HH.input
           [ HE.onValueInput (HE.input ChangeSkew <<< toSkew)
@@ -186,7 +184,6 @@ renderSkewSlider state =
           ]
       ]
 
-
 stopAnimation :: ∀ m.
   Bind m =>
   MonadState State m =>
@@ -194,7 +191,13 @@ stopAnimation :: ∀ m.
   m Unit
 stopAnimation = do
   state <- H.get
+  let
+    graphicsCtx = unsafePartial (fromJust state.mGraphicsContext)
+  -- stop the metronome immediately
   _ <- H.liftEffect $ setTimeout 0 state.runningMetronome
+  -- repaint the static markers (with no moving ball) at the appropriate skew
+  _ <- H.liftEffect $ Drawing.render graphicsCtx (markers state.skew beatStart)
+  -- save state
   _ <- H.modify (\st -> st { isRunning = false
                            , runningMetronome = mempty :: Effect Unit })
   pure unit

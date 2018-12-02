@@ -18,7 +18,7 @@ import Effect (Effect)
 import Effect.Aff (Aff)
 import Network.HTTP.Affjax (affjax, defaultRequest)
 import Network.HTTP.Affjax.Response as Response
-import Metronome.Beat (Beat(..))
+import Metronome.Beat (Beat(..), Bpm, collisionTolerance)
 
 -- | an index into the buffer sound for each Beat number
 type BeatMap = Map Int AudioBuffer
@@ -76,11 +76,13 @@ maybeInsert k mv map =
 -- | play the requested beat through the audio buffer
 playBeat
   :: AudioContext
+  -> Bpm
+  -> Number
   -> BeatMap
   -> Beat
   -> Effect Unit
-playBeat ctx beatMap (Beat { number, proportion }) =
-  if (proportion > 0.035 ) then
+playBeat ctx bpm skew beatMap (Beat { number, proportion }) =
+  if (proportion > collisionTolerance bpm skew number) then
     pure unit
   else
     let
