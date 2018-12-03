@@ -38,10 +38,10 @@ circleBackRotationRadius :: Number
 circleBackRotationRadius =
   2.0 * circleForwardRotationRadius
 
--- | the leftmost margin for the first of our three static circles
+-- | the leftmost margin to the centre of the first of our three static circles
 leftMargin :: Number
 leftMargin =
-  100.0
+  50.0
 
 -- | everything is placed relative to the same vertical y coordinate
 yPos :: Number
@@ -146,7 +146,7 @@ skewedBeat1Marker skew isCollided =
   let
     delta = skew * circleForwardRotationRadius
     xPos = (2.0 * (circleForwardRotationRadius - delta))
-           + leftMargin
+                    + leftMargin
   in
     staticCircle xPos isCollided
 
@@ -155,7 +155,7 @@ backdrop :: Drawing
 backdrop
   = filled
       (fillColor white)
-      (rectangle 0.0 0.0 800.0 800.0)
+      (rectangle 0.0 0.0 800.0 350.0)
 
 -- | Work out if the moving ball has collided with the narker for the given
 -- | beat number.  This happens if the current beat coincides and the

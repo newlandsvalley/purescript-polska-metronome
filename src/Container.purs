@@ -77,9 +77,12 @@ component =
          , HP.height 350
          , HP.width  800
          ]
-      , renderStopStart state
-      , renderTempoSlider state
-      , renderSkewSlider state
+      , HH.div
+         [HP.id_ "instruction-group" ]
+         [ renderStopStart state
+         , renderSkewSlider state
+         , renderTempoSlider state
+         ]
       ]
 
   eval :: Query ~> H.ComponentDSL State Query Void Aff
@@ -130,11 +133,14 @@ renderStopStart state =
         then Stop
         else Start
   in
-    HH.button
-      [ HE.onClick (HE.input_ command)
-      , HP.class_ $ ClassName "hoverable"
+    HH.div
+      [ HP.class_ (H.ClassName "instruction-component")]
+      [ HH.button
+        [ HE.onClick (HE.input_ command)
+        , HP.class_ $ ClassName "hoverable"
+        ]
+        [ HH.text label ]
       ]
-      [ HH.text label ]
 
 renderTempoSlider :: State ->  H.ComponentHTML Query
 renderTempoSlider state =
@@ -145,9 +151,9 @@ renderTempoSlider state =
       fromMaybe 120 $ fromString s
   in
     HH.div
-      [ HP.class_ (H.ClassName "leftPanelComponent")]
+      [ HP.class_ (H.ClassName "instruction-component")]
       [ HH.label
-         [ HP.class_ (H.ClassName "labelAlignment") ]
+         [ HP.class_ (H.ClassName "sliderLabel") ]
          [ HH.text "change tempo:" ]
 
       , HH.input
@@ -169,10 +175,10 @@ renderSkewSlider state =
       (readFloat s) / 100.0
   in
     HH.div
-      [ HP.class_ (H.ClassName "leftPanelComponent")]
+      [ HP.class_ (H.ClassName "instruction-component")]
       [ HH.label
-         [ HP.class_ (H.ClassName "labelAlignment") ]
-         [ HH.text "shift 2nd beat:" ]
+         [ HP.class_ (H.ClassName "sliderLabel") ]
+         [ HH.text "shorten 2nd beat:" ]
 
       , HH.input
           [ HE.onValueInput (HE.input ChangeSkew <<< toSkew)
