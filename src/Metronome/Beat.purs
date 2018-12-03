@@ -12,19 +12,19 @@ import Prelude (class Eq, class Show, map, show, (*), (-), (+), (/), (<>), (>))
 -- | The tempo in Beats Per Minute (bpm)
 type Bpm = Int
 
--- | the duration of a single beat in milliseconds
+-- | The duration of a single beat in milliseconds
 beatDuration :: Bpm -> Number
 beatDuration b =
   (60.0 * 1000.0 / (toNumber b))
 
--- | the duration of a single polska bar (3 beats) in milliseconds
+-- | The duration of a single polska bar (3 beats) in milliseconds
 polskaMeasureDuration ::  Bpm -> Number
 polskaMeasureDuration b =
   (3.0 * 60.0 * 1000.0 / (toNumber b))
 
--- | calculate the number of animation frames per beat assuming that
--- | they will tend to run at 60 / second and that the beats are not
--- | skewed, but with skew, the beat 1 has more BPM.
+-- | Calculate the number of animation frames per beat assuming that
+-- | they will tend to run at 60 / second. Take account of the fact
+-- | that beat 1 may be skewed and thus its BPM is effectively increased.
 animationFramesPerBeat :: Bpm -> Number -> Int-> Number
 animationFramesPerBeat b skew beatNumber =
   let
@@ -83,7 +83,7 @@ elapsedTimeToBeat skew b (Seconds s) =
   in
     Beat { number, proportion }
 
--- | convert a Behavior in elapsed time (seconds) to a Behavior in Beats
+-- | Convert a Behavior in elapsed time (seconds) to a Behavior in Beats
 toBeats :: Number -> Bpm -> Behavior Seconds -> Behavior Beat
 toBeats skew b secs =
   map (elapsedTimeToBeat skew b) secs

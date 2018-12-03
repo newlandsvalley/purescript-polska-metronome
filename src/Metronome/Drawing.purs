@@ -7,11 +7,22 @@ import Color (Color, rgb, white)
 import Data.Int (toNumber)
 import Graphics.Drawing (Drawing, circle, rectangle, filled, fillColor)
 import Math (cos, pi, sin)
-import Prelude ((*), (+), (-), (/), (<>))
+import Prelude ((*), (+), (-), (/), (<>), (&&), (==), (<))
+
+-- | the radius of the outer halo when a collision occurs
+outerHaloRadius :: Number
+outerHaloRadius =
+  innerHaloRadius + 3.0
+
+-- | the radius of the inner halo when a collision occurs
+innerHaloRadius :: Number
+innerHaloRadius =
+  bigCircleRadius + 3.0
 
 -- | the radius of the outline of a big static circle
 bigCircleRadius :: Number
-bigCircleRadius = 30.0
+bigCircleRadius =
+  smallCircleRadius + 3.0
 
 -- | the radius of the smaller moving circle
 -- | as well as the interior ring of the big static circle
@@ -42,12 +53,34 @@ red = rgb 200 0 0
 blue :: Color
 blue = rgb 0 0 200
 
+gray :: Color
+gray = rgb 160 160 160
+-- gray = rgb 150 150 150
+
 -- | Create a drawing of a static circle as a ring
-staticCircle :: Number -> Drawing
-staticCircle x =
-  filled
-    (fillColor red)
-    (circle x yPos bigCircleRadius)
+-- | but which is enhanced with  'halo' if it has recently collided with the ball
+staticCircle :: Number -> Boolean -> Drawing
+staticCircle x isCollided =
+  if isCollided then
+    filled
+      (fillColor gray)
+      (circle x yPos outerHaloRadius)
+    <>
+      filled
+        (fillColor white)
+        (circle x yPos innerHaloRadius)
+    <>
+      uncollidedCircle x
+  else
+    uncollidedCircle x
+
+-- | create a circle representing a beat marker where there is no collision
+-- | with the moving ball
+uncollidedCircle :: Number -> Drawing
+uncollidedCircle x =
+    filled
+      (fillColor red)
+      (circle x yPos bigCircleRadius)
   <>
     filled
       (fillColor white)
@@ -98,24 +131,24 @@ movingCircle skew (Beat { number, proportion }) =
       (circle x y smallCircleRadius)
 
 -- beat markers 0 and 2 are fixed
-beatMarker :: Int -> Drawing
-beatMarker beatNumber =
+beatMarker :: Int -> Boolean -> Drawing
+beatMarker beatNumber isCollided =
   let
     xPos = (toNumber beatNumber) * (2.0 * circleForwardRotationRadius)
                     + leftMargin
   in
-    staticCircle xPos
+    staticCircle xPos isCollided
 
 -- the beat 1 marker may be skewed 'early' by an amount 'skew'
 -- which should be in the range 0 <= skew <= about 0.5
-skewedBeat1Marker :: Number -> Drawing
-skewedBeat1Marker skew =
+skewedBeat1Marker :: Number -> Boolean -> Drawing
+skewedBeat1Marker skew isCollided =
   let
     delta = skew * circleForwardRotationRadius
     xPos = (2.0 * (circleForwardRotationRadius - delta))
            + leftMargin
   in
-    staticCircle xPos
+    staticCircle xPos isCollided
 
 
 backdrop :: Drawing
@@ -124,14 +157,54 @@ backdrop
       (fillColor white)
       (rectangle 0.0 0.0 800.0 800.0)
 
-markers :: Number -> Beat -> Drawing
-markers skew beat =
-    backdrop
-      <> (beatMarker 0)
-      <> (skewedBeat1Marker skew)
-      <> (beatMarker 2)
+-- | Work out if the moving ball has collided with the narker for the given
+-- | beat number.  This happens if the current beat coincides and the
+-- | proportion of the beat that has elapsed is small.
+markerCollided :: Boolean -> Int -> Number -> Bpm -> Beat -> Boolean
+markerCollided isActive beatNumber skew bpm (Beat { number, proportion }) =
+  if isActive then
+    (beatNumber == number)
+      && (proportion < 0.2)
+  else
+    false
 
-metronome :: Number -> Beat -> Drawing
-metronome skew beat =
-  markers skew beat
+-- | draw an individual marker (number 0, 1 or 2)
+-- | work out if it has collided or not to determine whether or not
+-- | to draw the 'halo'
+drawMarker :: Boolean -> Int -> Number -> Bpm -> Beat -> Drawing
+drawMarker isActive beatNumber skew bpm beat =
+  let
+    isCollided :: Boolean
+    isCollided = markerCollided isActive beatNumber skew bpm beat
+  in
+    case beatNumber of
+      1 ->
+        skewedBeat1Marker skew isCollided
+      _ ->
+        beatMarker beatNumber isCollided
+
+
+-- | Draw the three static markers which are placeholders for each beat
+-- | Used in cases where the animation is stopped.
+markers :: Number -> Drawing
+markers skew =
+  -- bpm and beatStart are irrelevant when the animation is inactive
+  -- They're  only used to detect collisions
+  movingMarkers false skew 120 beatStart
+
+-- | Draw the markers, but taking account of whether or not the animation is
+-- | active, in which case a marker will display a 'halo' if it subjected to
+-- | a collision
+movingMarkers  :: Boolean -> Number -> Bpm -> Beat -> Drawing
+movingMarkers isActive skew bpm beat =
+    backdrop
+      <> drawMarker isActive 0 skew bpm beat
+      <> drawMarker isActive 1 skew bpm beat
+      <> drawMarker isActive 2 skew bpm beat
+
+
+-- | Draw the active metronome at the particular beat in question.
+metronome :: Number -> Bpm -> Beat -> Drawing
+metronome skew bpm beat =
+  movingMarkers true skew bpm beat
     <> movingCircle skew beat

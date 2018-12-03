@@ -24,7 +24,7 @@ import Data.Map.Internal (empty)
 import Data.Int (fromString)
 import Graphics.Drawing (render) as Drawing
 import Metronome.Drawing (markers, metronome)
-import Metronome.Beat (Bpm, beatStart, toBeats)
+import Metronome.Beat (Bpm, toBeats)
 
 type State =
   { mAudioContext :: Maybe AudioContext
@@ -97,7 +97,7 @@ component =
       audioCtx = unsafePartial (fromJust state.mAudioContext)
     graphicsCtx <- H.liftEffect  $ getContext2D canvas
     runningMetronome <- H.liftEffect  $ animate (toBeats state.skew state.bpm seconds) \beat -> do
-         _ <- Drawing.render graphicsCtx (metronome state.skew beat)
+         _ <- Drawing.render graphicsCtx (metronome state.skew state.bpm beat)
          playBeat audioCtx state.bpm state.skew state.beatMap beat
     _ <- H.modify (\st -> st { mGraphicsContext = Just graphicsCtx
                              , isRunning = true
@@ -196,7 +196,7 @@ stopAnimation = do
   -- stop the metronome immediately
   _ <- H.liftEffect $ setTimeout 0 state.runningMetronome
   -- repaint the static markers (with no moving ball) at the appropriate skew
-  _ <- H.liftEffect $ Drawing.render graphicsCtx (markers state.skew beatStart)
+  _ <- H.liftEffect $ Drawing.render graphicsCtx (markers state.skew)
   -- save state
   _ <- H.modify (\st -> st { isRunning = false
                            , runningMetronome = mempty :: Effect Unit })
