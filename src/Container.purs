@@ -162,18 +162,22 @@ renderTempoSlider state =
           , HP.type_ HP.InputRange
           , HP.id_ "tempo-slider"
           , HP.min 60.0
-          , HP.max 200.0
+          , HP.max 240.0
           , HP.value (show state.bpm)
           ]
       ]
 
+-- | the slider is callibrated as follows:
+-- |  Slider Position        skew
+-- |      0 (min)             0.5 (max skew)
+-- |     50 (max)             0 (no skew)
 renderSkewSlider :: State ->  H.ComponentHTML Query
 renderSkewSlider state =
   let
-     -- | get the value from the slider result, defaulting to 0
+     -- | get the value from the slider result, defaulting to 50 (no skew)
     toSkew :: String -> Number
     toSkew s =
-      (readFloat s) / 100.0
+      (50.0 - readFloat s) / 100.0
   in
     HH.div
       [ HP.class_ (H.ClassName "instruction-component")]
@@ -187,7 +191,7 @@ renderSkewSlider state =
           , HP.id_ "skew-slider"
           , HP.min 0.0
           , HP.max 50.0
-          , HP.value (show (state.skew * 100.0))
+          , HP.value (show ((0.5 - state.skew) * 100.0))
           ]
       ]
 
