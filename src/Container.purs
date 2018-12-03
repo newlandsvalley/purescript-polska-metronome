@@ -82,6 +82,7 @@ component =
          [ renderStopStart state
          , renderSkewSlider state
          , renderTempoSlider state
+         , renderBpm state
          ]
       ]
 
@@ -189,6 +190,13 @@ renderSkewSlider state =
           , HP.value (show (state.skew * 100.0))
           ]
       ]
+
+renderBpm :: State -> H.ComponentHTML Query
+renderBpm state =
+  HH.div
+    [ HP.class_ (H.ClassName "instruction-component")]
+    [ HH.text (show state.bpm <> " bpm") ]
+
 
 stopAnimation :: ∀ m.
   Bind m =>
