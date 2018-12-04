@@ -47,15 +47,14 @@ leftMargin =
 yPos :: Number
 yPos = 180.0
 
-red :: Color
-red = rgb 200 0 0
+green :: Color
+green = rgb 102 153 102
 
-blue :: Color
-blue = rgb 0 0 200
+olive :: Color
+olive = rgb 103 78 7
 
 gray :: Color
 gray = rgb 160 160 160
--- gray = rgb 150 150 150
 
 -- | Create a drawing of a static circle as a ring
 -- | but which is enhanced with  'halo' if it has recently collided with the ball
@@ -79,7 +78,7 @@ staticCircle x isCollided =
 uncollidedCircle :: Number -> Drawing
 uncollidedCircle x =
     filled
-      (fillColor red)
+      (fillColor olive)
       (circle x yPos bigCircleRadius)
   <>
     filled
@@ -127,7 +126,7 @@ movingCircle skew (Beat { number, proportion }) =
           centreY + (radius * sin theta * 0.5)  -- up
   in
     filled
-      (fillColor blue)
+      (fillColor green)
       (circle x y smallCircleRadius)
 
 -- beat markers 0 and 2 are fixed
