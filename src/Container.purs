@@ -72,6 +72,7 @@ component =
       [ HH.h1
          [HP.class_ (H.ClassName "center") ]
          [HH.text "Polska Metronome" ]
+      , renderPolskaDescription state
       , HH.canvas
          [ HP.id_ "canvas"
          , HP.height 350
@@ -169,8 +170,9 @@ renderTempoSlider state =
 
 -- | the slider is callibrated as follows:
 -- |  Slider Position        skew
--- |      0 (min)             0.5 (max skew)
--- |     50 (max)             0 (no skew)
+-- |      0 (min)             0.5 (max skew for short first beat polska)
+-- |     50                   0 (no skew)
+-- |    100 (max)            -0.5 (max skew for finnskogpols)
 renderSkewSlider :: State ->  H.ComponentHTML Query
 renderSkewSlider state =
   let
@@ -183,14 +185,14 @@ renderSkewSlider state =
       [ HP.class_ (H.ClassName "instruction-component")]
       [ HH.label
          [ HP.class_ (H.ClassName "sliderLabel") ]
-         [ HH.text "shorten 2nd beat:" ]
+         [ HH.text "alter 2nd beat:" ]
 
       , HH.input
           [ HE.onValueInput (HE.input ChangeSkew <<< toSkew)
           , HP.type_ HP.InputRange
           , HP.id_ "skew-slider"
           , HP.min 0.0
-          , HP.max 50.0
+          , HP.max 100.0
           , HP.value (show ((0.5 - state.skew) * 100.0))
           ]
       ]
@@ -200,6 +202,20 @@ renderBpm state =
   HH.div
     [ HP.class_ (H.ClassName "instruction-component")]
     [ HH.text (show state.bpm <> " bpm") ]
+
+renderPolskaDescription :: State -> H.ComponentHTML Query
+renderPolskaDescription state =
+  let
+    description =
+      if (state.skew < 0.0) then
+        "finnskogpols"
+      else if (state.skew > 0.0) then
+        "short first beat poska"
+      else "regular"
+  in
+    HH.h2
+      [ HP.class_ (H.ClassName "center")]
+      [ HH.text description ]
 
 
 stopAnimation :: ∀ m.
