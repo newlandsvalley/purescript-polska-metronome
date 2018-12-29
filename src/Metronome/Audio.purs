@@ -18,10 +18,10 @@ import Effect (Effect)
 import Effect.Aff (Aff)
 import Network.HTTP.Affjax (affjax, defaultRequest)
 import Network.HTTP.Affjax.Response as Response
-import Metronome.Beat (Beat(..), Bpm, collisionTolerance)
+import Metronome.Beat (BeatNumber(..), Beat(..), Bpm, collisionTolerance)
 
 -- | an index into the buffer sound for each Beat number
-type BeatMap = Map Int AudioBuffer
+type BeatMap = Map BeatNumber AudioBuffer
 
 -- | Beat Sounds in Web-Audio
 -- | The use should supply a url path to where the sound files reside
@@ -61,9 +61,9 @@ loadBeatBuffers ctx path names = do
   -- buffers <- loadSoundBuffers ctx "assets/audio" ["hightom.mp3", "tom.mp3", "hihat.mp3"]
   buffers <- loadSoundBuffers ctx path names
   let
-    map0 = maybeInsert 0 (buffers !! 0) empty
-    map1 = maybeInsert 1 (buffers !! 1) map0
-    map2 = maybeInsert 2 (buffers !! 2) map1
+    map0 = maybeInsert Zero (buffers !! 0) empty
+    map1 = maybeInsert One (buffers !! 1) map0
+    map2 = maybeInsert Two (buffers !! 2) map1
   pure map2
 
 maybeInsert :: forall k v. Ord k => k -> Maybe v -> Map k v -> Map k v
@@ -89,7 +89,7 @@ playBeat ctx bpm skew beatMap (Beat { number, proportion }) =
       volume =
         -- make the second beat quieter than the other two
         case number of
-          1 -> 0.4
+          One -> 0.4
           _ -> 1.0
     in
       case lookup number beatMap of

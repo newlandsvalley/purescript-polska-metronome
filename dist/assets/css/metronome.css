@@ -39,6 +39,11 @@ label {
   width: 160px;
 }
 
+#polska-menu {
+  background-color: #cccc99;
+  font-size: 1.0em;
+}
+
 .instruction-component {
   float: left;
   display: inline;
@@ -54,6 +59,6 @@ label {
 
 #instruction-group {
   display: block;
-  width: 1000px;
+  width: 1200px;
   margin: auto;
 }

@@ -9,9 +9,9 @@ import Effect.Aff (Aff)
 import Effect.Timer (setTimeout)
 import Halogen as H
 import Halogen.HTML as HH
-import Halogen.HTML.Core (ClassName(..))
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
+import Halogen.HTML.Core (ClassName(..), HTML)
 import Audio.WebAudio.Types (AudioContext)
 import Audio.WebAudio.BaseAudioContext (newAudioContext)
 import Metronome.Audio (BeatMap, loadBeatBuffers, playBeat)
@@ -24,11 +24,12 @@ import Data.Map.Internal (empty)
 import Data.Int (fromString)
 import Graphics.Drawing (render) as Drawing
 import Metronome.Drawing (markers, metronome)
-import Metronome.Beat (Bpm, toBeats)
+import Metronome.Beat (Bpm, PolskaType(..), toBeats)
 
 type State =
   { mAudioContext :: Maybe AudioContext
   , mGraphicsContext :: Maybe Context2D
+  , polskaType :: PolskaType
   , beatMap :: BeatMap
   , bpm :: Bpm
   , skew :: Number
@@ -42,6 +43,7 @@ data Query a =
   | Stop a
   | ChangeTempo Bpm a
   | ChangeSkew Number a
+  | ChangePolskaType String a
 
 component ::  H.Component HH.HTML Query Unit Void Aff
 component =
@@ -59,9 +61,10 @@ component =
   initialState =
     { mAudioContext : Nothing
     , mGraphicsContext : Nothing
+    , polskaType : ShortFirst
     , beatMap : empty
     , bpm : 120
-    , skew : 0.0
+    , skew : 0.25
     , isRunning : false
     , runningMetronome : mempty
     }
@@ -72,18 +75,19 @@ component =
       [ HH.h1
          [HP.class_ (H.ClassName "center") ]
          [HH.text "Polska Metronome" ]
-      , renderPolskaDescription state
       , HH.canvas
          [ HP.id_ "canvas"
          , HP.height 350
          , HP.width  800
          ]
+      -- debug only !!, HH.text ("skew: " <> (show state.skew))
       , HH.div
          [HP.id_ "instruction-group" ]
-         [ renderStopStart state
-         , renderSkewSlider state
-         , renderTempoSlider state
+         [ renderTempoSlider state
          , renderBpm state
+         , renderSkewSlider state
+         , renderPolskaTypeMenu state
+         , renderStopStart state
          ]
       ]
 
@@ -101,8 +105,8 @@ component =
       canvas = unsafePartial (fromJust mCanvas)
       audioCtx = unsafePartial (fromJust state.mAudioContext)
     graphicsCtx <- H.liftEffect  $ getContext2D canvas
-    runningMetronome <- H.liftEffect  $ animate (toBeats state.skew state.bpm seconds) \beat -> do
-         _ <- Drawing.render graphicsCtx (metronome state.skew state.bpm beat)
+    runningMetronome <- H.liftEffect  $ animate (toBeats state.polskaType state.skew state.bpm seconds) \beat -> do
+         _ <- Drawing.render graphicsCtx (metronome state.polskaType state.skew state.bpm beat)
          playBeat audioCtx state.bpm state.skew state.beatMap beat
     _ <- H.modify (\st -> st { mGraphicsContext = Just graphicsCtx
                              , isRunning = true
@@ -120,7 +124,16 @@ component =
     state <- H.get
     _ <- stopAnimation
     _ <- H.modify (\st -> st { skew = skew })
-    pure next
+    eval (Start next)
+    -- pure next
+  eval (ChangePolskaType s next) = do
+    state <- H.get
+    let
+      polskaType = readPolskaType s state.polskaType
+      skew = recalculateSkew state polskaType
+    _ <- stopAnimation
+    _ <- H.modify (\st -> st { polskaType = polskaType, skew = skew })
+    eval (Start next)
 
 -- rendering functions
 renderStopStart :: State -> H.ComponentHTML Query
@@ -168,32 +181,45 @@ renderTempoSlider state =
           ]
       ]
 
--- | the slider is callibrated as follows:
--- |  Slider Position        skew
--- |      0 (min)             0.5 (max skew for short first beat polska)
--- |     50                   0 (no skew)
--- |    100 (max)            -0.5 (max skew for finnskogpols)
+-- | the slider is callibrated as follows-
+-- |  short first and finnskogpols:
+-- |     Slider Position        skew
+-- |         0 (min)             0.5 (max skew)
+-- |        50 (max)             0 (no skew)
+-- |  long first:
+-- |     Slider Position        skew
+-- |         0 (min)             0 (no skew)
+-- |        50 (max)             -0.5 (max skew)
 renderSkewSlider :: State ->  H.ComponentHTML Query
 renderSkewSlider state =
   let
      -- | get the value from the slider result, defaulting to 50 (no skew)
-    toSkew :: String -> Number
-    toSkew s =
-      (50.0 - readFloat s) / 100.0
+    toSkew :: PolskaType -> String -> Number
+    toSkew polskaType s =
+      if (polskaType == LongFirst) then
+        (0.0 - readFloat s) / 100.0
+      else
+        (50.0 - readFloat s) / 100.0
+    fromSkew :: PolskaType -> Number -> String
+    fromSkew polskaType n =
+      if (polskaType == LongFirst) then
+        show ((0.0 - state.skew) * 100.0)
+      else
+        show ((0.5 - state.skew) * 100.0)
   in
     HH.div
       [ HP.class_ (H.ClassName "instruction-component")]
       [ HH.label
          [ HP.class_ (H.ClassName "sliderLabel") ]
-         [ HH.text "alter 2nd beat:" ]
+         [ HH.text "move 2nd marker:" ]
 
       , HH.input
-          [ HE.onValueInput (HE.input ChangeSkew <<< toSkew)
+          [ HE.onValueInput (HE.input ChangeSkew <<< toSkew state.polskaType)
           , HP.type_ HP.InputRange
           , HP.id_ "skew-slider"
           , HP.min 0.0
-          , HP.max 100.0
-          , HP.value (show ((0.5 - state.skew) * 100.0))
+          , HP.max 50.0
+          , HP.value (fromSkew state.polskaType state.skew)
           ]
       ]
 
@@ -203,19 +229,44 @@ renderBpm state =
     [ HP.class_ (H.ClassName "instruction-component")]
     [ HH.text (show state.bpm <> " bpm") ]
 
-renderPolskaDescription :: State -> H.ComponentHTML Query
-renderPolskaDescription state =
-  let
-    description =
-      if (state.skew < 0.0) then
-        "finnskogpols"
-      else if (state.skew > 0.0) then
-        "short first beat poska"
-      else "regular"
-  in
-    HH.h2
-      [ HP.class_ (H.ClassName "center")]
-      [ HH.text description ]
+
+-- | a menu option is a string representing the option and a boolean indicating
+-- | whether it is selected
+data MenuOption =
+  MenuOption String Boolean
+
+renderPolskaTypeMenu :: State ->  H.ComponentHTML Query
+renderPolskaTypeMenu state =
+    let
+      f :: ∀ p i. MenuOption -> HTML p i
+      f mo =
+        case mo of
+          MenuOption text selected ->
+            HH.option
+              [ HP.selected selected
+              , HP.value text ]
+              [ HH.text text]
+    in
+      HH.div
+        [ HP.class_ (H.ClassName "instruction-component")]
+        [ HH.label
+           [ HP.class_ (H.ClassName "MenuLabel") ]
+           [ HH.text "Polska Type:" ]
+        , HH.select
+            [ HP.class_ $ ClassName "selection"
+            , HP.id_  "polska-menu"
+            , HP.value (show state.polskaType)
+            , HE.onValueChange  (HE.input ChangePolskaType)
+            ]
+            (map f $ polskaTypeOptions state.polskaType)
+        ]
+
+polskaTypeOptions :: PolskaType -> Array MenuOption
+polskaTypeOptions polskaType =
+  [ MenuOption (show ShortFirst) (polskaType == ShortFirst)
+  , MenuOption (show LongFirst) (polskaType == LongFirst)
+  , MenuOption (show Finnskogpols) (polskaType == Finnskogpols)
+  ]
 
 
 stopAnimation :: ∀ m.
@@ -230,8 +281,28 @@ stopAnimation = do
   -- stop the metronome immediately
   _ <- H.liftEffect $ setTimeout 0 state.runningMetronome
   -- repaint the static markers (with no moving ball) at the appropriate skew
-  _ <- H.liftEffect $ Drawing.render graphicsCtx (markers state.skew)
+  _ <- H.liftEffect $ Drawing.render graphicsCtx (markers state.polskaType state.skew)
   -- save state
   _ <- H.modify (\st -> st { isRunning = false
                            , runningMetronome = mempty :: Effect Unit })
   pure unit
+
+readPolskaType :: String -> PolskaType -> PolskaType
+readPolskaType s default =
+  case s of
+    "Finnskogpols" -> Finnskogpols
+    "Long first beat" -> LongFirst
+    "Short first beat" -> ShortFirst
+    _ -> default
+
+-- | recalculate the skew if the polska type changes
+-- | if we change to or from a long first beat polska, the sign reverses
+-- | otherwise it's unchanged
+recalculateSkew :: State -> PolskaType -> Number
+recalculateSkew state newPolskaType =
+  if (state.polskaType == LongFirst) && (newPolskaType /= LongFirst) then
+    0.0 - state.skew
+  else if (state.polskaType /= LongFirst) && (newPolskaType == LongFirst) then
+    0.0 - state.skew
+  else
+    state.skew
