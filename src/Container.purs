@@ -20,7 +20,7 @@ import FRP.Behavior (animate)
 import FRP.Behavior.Time (seconds)
 import Partial.Unsafe (unsafePartial)
 import Data.Maybe (Maybe(..), fromJust, fromMaybe)
-import Data.Map.Internal (empty)
+import Data.Map (empty)
 import Data.Int (fromString)
 import Graphics.Drawing (render) as Drawing
 import Metronome.Drawing (markers, metronome)
