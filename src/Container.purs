@@ -37,28 +37,39 @@ type State =
   , runningMetronome :: Effect Unit
   }
 
-data Query a =
-    Init a
-  | Start a
-  | Stop a
-  | ChangeTempo Bpm a
-  | ChangeSkew Number a
-  | ChangePolskaType String a
+data Action =
+    Init
+  | Start
+  | Stop
+  | ChangeTempo Bpm
+  | ChangeSkew Number
+  | ChangePolskaType String
 
-component ::  H.Component HH.HTML Query Unit Void Aff
+-- the only reason that we need Query at all is that we need to chain
+-- the playing of the metronome after initialisation or after button settings
+-- change and this is not possible just with actions - we need a query
+--
+-- Rendering takes place between the two initialisations.
+data Query a =
+  StartMetronome a
+
+
+component :: ∀ i o. H.Component HH.HTML Query i o Aff
 component =
-  H.lifecycleComponent
-    { initialState: const initialState
+  H.mkComponent
+    { initialState
     , render
-    , eval
-    , initializer: Just (H.action Init)
-    , finalizer: Nothing
-    , receiver: const Nothing
+    , eval: H.mkEval $ H.defaultEval
+        { handleAction = handleAction
+        , handleQuery = handleQuery
+        , initialize = Just Init
+        , finalize = Nothing
+        }
     }
   where
 
-  initialState :: State
-  initialState =
+  initialState :: i -> State
+  initialState _ =
     { mAudioContext : Nothing
     , mGraphicsContext : Nothing
     , polskaType : ShortFirst
@@ -69,7 +80,7 @@ component =
     , runningMetronome : mempty
     }
 
-  render :: State -> H.ComponentHTML Query
+  render :: State -> H.ComponentHTML Action () Aff
   render state =
     HH.div_
       [ HH.h1
@@ -91,14 +102,46 @@ component =
          ]
       ]
 
-  eval :: Query ~> H.ComponentDSL State Query Void Aff
-  eval (Init next) = do
-    audioCtx <- H.liftEffect newAudioContext
-    beatMap <-  H.liftAff $ loadBeatBuffers audioCtx "assets/audio" ["hightom.mp3", "tom.mp3", "hihat.mp3"]
-    _ <- H.modify (\st -> st { mAudioContext = Just audioCtx
-                             , beatMap = beatMap })
-    eval (Start next)
-  eval (Start next) = do
+  handleAction ∷ Action → H.HalogenM State Action () o Aff Unit
+  handleAction = case _ of
+    Init -> do
+      audioCtx <- H.liftEffect newAudioContext
+      beatMap <-  H.liftAff $ loadBeatBuffers audioCtx "assets/audio" ["hightom.mp3", "tom.mp3", "hihat.mp3"]
+      _ <- H.modify (\st -> st { mAudioContext = Just audioCtx
+                               , beatMap = beatMap })
+      _ <- handleQuery (StartMetronome unit)
+      pure unit
+    Start -> do
+      -- defer to the query
+      _ <- handleQuery (StartMetronome unit)
+      pure unit
+    Stop -> do
+      _ <- stopAnimation
+      pure unit
+    ChangeTempo bpm -> do
+      state <- H.get
+      _ <- stopAnimation
+      _ <- H.modify (\st -> st { bpm = bpm })
+      pure unit
+    ChangeSkew skew -> do
+      state <- H.get
+      _ <- stopAnimation
+      _ <- H.modify (\st -> st { skew = skew })
+      _ <- handleQuery (StartMetronome unit)
+      pure unit
+    ChangePolskaType s -> do
+      state <- H.get
+      let
+        polskaType = readPolskaType s state.polskaType
+        skew = recalculateSkew state polskaType
+      _ <- stopAnimation
+      _ <- H.modify (\st -> st { polskaType = polskaType, skew = skew })
+      _ <- handleQuery (StartMetronome unit)
+      pure unit
+
+handleQuery :: ∀ o a. Query a -> H.HalogenM State Action () o Aff (Maybe a)
+handleQuery = case _ of
+  StartMetronome next -> do
     state <- H.get
     mCanvas <- H.liftEffect $ getCanvasElementById "canvas"
     let
@@ -111,32 +154,11 @@ component =
     _ <- H.modify (\st -> st { mGraphicsContext = Just graphicsCtx
                              , isRunning = true
                              , runningMetronome = runningMetronome })
-    pure next
-  eval (Stop next) = do
-    _ <- stopAnimation
-    pure next
-  eval (ChangeTempo bpm next) = do
-    state <- H.get
-    _ <- stopAnimation
-    _ <- H.modify (\st -> st { bpm = bpm })
-    pure next
-  eval (ChangeSkew skew next) = do
-    state <- H.get
-    _ <- stopAnimation
-    _ <- H.modify (\st -> st { skew = skew })
-    eval (Start next)
-    -- pure next
-  eval (ChangePolskaType s next) = do
-    state <- H.get
-    let
-      polskaType = readPolskaType s state.polskaType
-      skew = recalculateSkew state polskaType
-    _ <- stopAnimation
-    _ <- H.modify (\st -> st { polskaType = polskaType, skew = skew })
-    eval (Start next)
+    pure (Just next)
+
 
 -- rendering functions
-renderStopStart :: State -> H.ComponentHTML Query
+renderStopStart :: State -> H.ComponentHTML Action () Aff
 renderStopStart state =
   let
     label =
@@ -151,13 +173,13 @@ renderStopStart state =
     HH.div
       [ HP.class_ (H.ClassName "instruction-component")]
       [ HH.button
-        [ HE.onClick (HE.input_ command)
+        [ HE.onClick \_ -> Just command
         , HP.class_ $ ClassName "hoverable"
         ]
         [ HH.text label ]
       ]
 
-renderTempoSlider :: State ->  H.ComponentHTML Query
+renderTempoSlider :: State -> H.ComponentHTML Action () Aff
 renderTempoSlider state =
   let
      -- | get the value from the slider result, defaulting to 120
@@ -172,7 +194,7 @@ renderTempoSlider state =
          [ HH.text "change tempo:" ]
 
       , HH.input
-          [ HE.onValueInput (HE.input ChangeTempo <<< toTempo)
+          [ HE.onValueInput (Just <<< ChangeTempo <<< toTempo)
           , HP.type_ HP.InputRange
           , HP.id_ "tempo-slider"
           , HP.min 60.0
@@ -190,7 +212,7 @@ renderTempoSlider state =
 -- |     Slider Position        skew
 -- |         0 (min)             0 (no skew)
 -- |        50 (max)             -0.5 (max skew)
-renderSkewSlider :: State ->  H.ComponentHTML Query
+renderSkewSlider :: State -> H.ComponentHTML Action () Aff
 renderSkewSlider state =
   let
      -- | get the value from the slider result, defaulting to 50 (no skew)
@@ -214,7 +236,7 @@ renderSkewSlider state =
          [ HH.text "move 2nd marker:" ]
 
       , HH.input
-          [ HE.onValueInput (HE.input ChangeSkew <<< toSkew state.polskaType)
+          [ HE.onValueInput (Just <<< ChangeSkew <<< toSkew state.polskaType)
           , HP.type_ HP.InputRange
           , HP.id_ "skew-slider"
           , HP.min 0.0
@@ -223,7 +245,7 @@ renderSkewSlider state =
           ]
       ]
 
-renderBpm :: State -> H.ComponentHTML Query
+renderBpm :: State -> H.ComponentHTML Action () Aff
 renderBpm state =
   HH.div
     [ HP.class_ (H.ClassName "instruction-component")]
@@ -235,7 +257,7 @@ renderBpm state =
 data MenuOption =
   MenuOption String Boolean
 
-renderPolskaTypeMenu :: State ->  H.ComponentHTML Query
+renderPolskaTypeMenu :: State -> H.ComponentHTML Action () Aff
 renderPolskaTypeMenu state =
     let
       f :: ∀ p i. MenuOption -> HTML p i
@@ -254,9 +276,9 @@ renderPolskaTypeMenu state =
            [ HH.text "Polska Type:" ]
         , HH.select
             [ HP.class_ $ ClassName "selection"
+            , HE.onValueChange (Just <<< ChangePolskaType)
             , HP.id_  "polska-menu"
             , HP.value (show state.polskaType)
-            , HE.onValueChange  (HE.input ChangePolskaType)
             ]
             (map f $ polskaTypeOptions state.polskaType)
         ]
