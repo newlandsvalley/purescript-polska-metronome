@@ -3,7 +3,7 @@
 /.pulp-cache/
 /deprecated/
 /output/
-/dist/metronome.js
+/example/dist/metronome.js
 /.psc*
 /.psa*
 /.purs-repl
