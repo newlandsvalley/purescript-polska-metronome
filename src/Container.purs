@@ -5,7 +5,6 @@ import Global (readFloat)
 import Effect.Aff.Class (class MonadAff)
 import Control.Monad.State.Class (class MonadState)
 import Effect (Effect)
-import Effect.Aff (Aff)
 import Effect.Timer (setTimeout)
 import Halogen as H
 import Halogen.HTML as HH
@@ -53,8 +52,7 @@ data Action =
 data Query a =
   StartMetronome a
 
-
-component :: ∀ i o. H.Component HH.HTML Query i o Aff
+component :: ∀ i o m. MonadAff m => H.Component HH.HTML Query i o m
 component =
   H.mkComponent
     { initialState
@@ -80,7 +78,7 @@ component =
     , runningMetronome : mempty
     }
 
-  render :: State -> H.ComponentHTML Action () Aff
+  render :: State -> H.ComponentHTML Action () m
   render state =
     HH.div_
       [ HH.h1
@@ -102,7 +100,7 @@ component =
          ]
       ]
 
-  handleAction ∷ Action → H.HalogenM State Action () o Aff Unit
+  handleAction ∷ Action → H.HalogenM State Action () o m Unit
   handleAction = case _ of
     Init -> do
       audioCtx <- H.liftEffect newAudioContext
@@ -139,7 +137,7 @@ component =
       _ <- handleQuery (StartMetronome unit)
       pure unit
 
-handleQuery :: ∀ o a. Query a -> H.HalogenM State Action () o Aff (Maybe a)
+handleQuery :: ∀ o a m. MonadAff m => Query a -> H.HalogenM State Action () o m (Maybe a)
 handleQuery = case _ of
   StartMetronome next -> do
     state <- H.get
@@ -158,7 +156,7 @@ handleQuery = case _ of
 
 
 -- rendering functions
-renderStopStart :: State -> H.ComponentHTML Action () Aff
+renderStopStart :: ∀ m. State -> H.ComponentHTML Action () m
 renderStopStart state =
   let
     label =
@@ -179,7 +177,7 @@ renderStopStart state =
         [ HH.text label ]
       ]
 
-renderTempoSlider :: State -> H.ComponentHTML Action () Aff
+renderTempoSlider :: ∀ m. State -> H.ComponentHTML Action () m
 renderTempoSlider state =
   let
      -- | get the value from the slider result, defaulting to 120
@@ -212,7 +210,7 @@ renderTempoSlider state =
 -- |     Slider Position        skew
 -- |         0 (min)             0 (no skew)
 -- |        50 (max)             -0.5 (max skew)
-renderSkewSlider :: State -> H.ComponentHTML Action () Aff
+renderSkewSlider :: ∀ m. State -> H.ComponentHTML Action () m
 renderSkewSlider state =
   let
      -- | get the value from the slider result, defaulting to 50 (no skew)
@@ -245,7 +243,7 @@ renderSkewSlider state =
           ]
       ]
 
-renderBpm :: State -> H.ComponentHTML Action () Aff
+renderBpm :: ∀ m. State -> H.ComponentHTML Action () m
 renderBpm state =
   HH.div
     [ HP.class_ (H.ClassName "instruction-component")]
@@ -257,7 +255,7 @@ renderBpm state =
 data MenuOption =
   MenuOption String Boolean
 
-renderPolskaTypeMenu :: State -> H.ComponentHTML Action () Aff
+renderPolskaTypeMenu :: ∀ m. State -> H.ComponentHTML Action () m
 renderPolskaTypeMenu state =
     let
       f :: ∀ p i. MenuOption -> HTML p i
