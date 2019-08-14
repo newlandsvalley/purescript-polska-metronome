@@ -13,13 +13,19 @@ This project is therefore a metronome for 3/4 rhythms with three 'beat markers' 
 
 Additionally, the __Even__ variant, with each beat in tempo, can be represented by one of the other forms if you choose the skew of the middle beat marker to be zero.
 
-To build
---------
+To build as a library module
+----------------------------
 
     bower install
     npm run build
 
-and then navigate in your browser to /dist.  The browser must (of course) support web-audio.
+To build the example
+--------------------
+
+    bower install
+    npm run example
+
+and then navigate in your browser to /example/dist.  The browser must (of course) support web-audio.
 
 Credits
 -------

@@ -1,7 +1,8 @@
 {
   "private": true,
   "scripts": {
-    "build": "pulp build --to dist/metronome.js"
+    "build": "pulp build",
+    "example": "pulp build --main Example.Main --include example/src --to example/dist/metronome.js"
   },
   "devDependencies": {
     "pulp": "^12.3.0",
