@@ -8,7 +8,7 @@ import Audio.WebAudio.BaseAudioContext (createBufferSource, createGain, currentT
 import Audio.WebAudio.GainNode (setGain)
 import Audio.WebAudio.Types (AudioContext, AudioBuffer, connect)
 import Control.Parallel (parallel, sequential)
-import Data.Array ((!!))
+import Data.Array ((!!), concat, singleton)
 import Data.Either (Either(..))
 import Data.HTTP.Method (Method(..))
 import Data.Map (Map, empty, insert, lookup)
@@ -16,8 +16,8 @@ import Data.Maybe (Maybe(..))
 import Data.Traversable (traverse)
 import Effect (Effect)
 import Effect.Aff (Aff)
-import Network.HTTP.Affjax (affjax, defaultRequest)
-import Network.HTTP.Affjax.Response as Response
+import Affjax (request, defaultRequest)
+import Affjax.ResponseFormat as ResponseFormat
 import Metronome.Beat (BeatNumber(..), Beat(..), Bpm, collisionTolerance)
 
 -- | an index into the buffer sound for each Beat number
@@ -33,14 +33,22 @@ loadSoundBuffer
   :: AudioContext
   -> String
   -> String
-  -> Aff AudioBuffer
+  -> Aff (Array AudioBuffer)
 loadSoundBuffer ctx path name =
   let
     filename = path <> "/" <> name
   in do
-    res <- affjax Response.arrayBuffer $ defaultRequest { url = filename, method = Left GET }
-    buffer <- decodeAudioDataAsync ctx res.response
-    pure buffer
+    res <- request $ defaultRequest
+            { url = filename
+            , method = Left GET
+            , responseFormat = ResponseFormat.arrayBuffer  }
+
+    case res.body of
+        Left err ->
+          pure []
+        Right body -> do
+         buffer <- decodeAudioDataAsync ctx body
+         pure $ singleton buffer
 
 -- | load and decode an array of audio buffers from a set of resources
 loadSoundBuffers
@@ -48,8 +56,9 @@ loadSoundBuffers
   -> String
   -> (Array String)
   -> Aff (Array AudioBuffer)
-loadSoundBuffers ctx path names =
-  sequential $ traverse (\name -> parallel (loadSoundBuffer ctx path name)) names
+loadSoundBuffers ctx path names = do
+  arrays <- sequential $ traverse (\name -> parallel (loadSoundBuffer ctx path name)) names
+  pure $ concat arrays
 
 -- | load all the 'beat' buffers and place them in a map keyed by beat name
 loadBeatBuffers

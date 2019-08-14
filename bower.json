@@ -7,33 +7,28 @@
     "output"
   ],
   "dependencies": {
-    "purescript-prelude": "^4.1.0",
+    "purescript-prelude": "^4.1.1",
     "purescript-drawing": "^4.0.0",
     "purescript-halogen": "https://github.com/slamdata/purescript-halogen.git#5.0.0-rc.4",
-    "purescript-halogen-css": "^8.0.0",
+    "purescript-halogen-css": "https://github.com/newlandsvalley/purescript-halogen-css.git#master",
     "purescript-css": "^4.0.0",
     "purescript-behaviors": "^7.0.0",
     "purescript-webaudio": "^0.1.2",
-    "purescript-affjax": "^6.0.0"
+    "purescript-affjax": "^9.0.0"
   },
   "devDependencies": {
     "purescript-psci-support": "^4.0.0"
   },
   "resolutions": {
-    "purescript-halogen": "5.0.0-rc.4",
+    "purescript-web-uievents": "^2.0.0",
     "purescript-web-events": "^2.0.0",
     "purescript-web-html": "^2.0.0",
-    "purescript-web-uievents": "^2.0.0",
-    "purescript-dom-indexed": "^7.0.0",
-    "purescript-halogen-vdom": "^6.1.0",
-    "purescript-profunctor-lenses": "^5.0.0",
-    "purescript-web-dom": "2 - 3",
-    "purescript-web-file": "2",
-    "purescript-web-storage": "3",
-    "purescript-web-clipboard": "^2.0.0",
-    "purescript-web-touchevents": "^2.0.0",
+    "purescript-argonaut-core": "^5.0.0",
     "purescript-foreign-object": "^2.0.1",
-    "purescript-record": "^2.0.1",
-    "purescript-typelevel-prelude": ">= 4.0.0 < 6.0.0"
+    "purescript-web-file": "^2.0.0",
+    "purescript-web-dom": "2 - 3",
+    "purescript-web-storage": "3",
+    "purescript-typelevel-prelude": ">= 4.0.0 < 6.0.0",
+    "purescript-record": "^2.0.1"
   }
 }
