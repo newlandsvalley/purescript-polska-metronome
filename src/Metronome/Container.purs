@@ -1,7 +1,6 @@
 module Metronome.Container where
 
 import Prelude
-import Data.Const (Const)
 import Global (readFloat)
 import Effect.Aff.Class (class MonadAff)
 import Control.Monad.State.Class (class MonadState)
@@ -26,7 +25,7 @@ import Graphics.Drawing (render) as Drawing
 import Metronome.Drawing (markers, metronome)
 import Metronome.Beat (Bpm, PolskaType(..), toBeats)
 
-type Slot = H.Slot (Const Void) Void
+type Slot = H.Slot Query Void
 
 type State =
   { mAudioContext :: Maybe AudioContext
