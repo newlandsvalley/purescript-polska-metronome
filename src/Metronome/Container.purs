@@ -1,4 +1,4 @@
-module Container where
+module Metronome.Container where
 
 import Prelude
 import Global (readFloat)
@@ -61,11 +61,11 @@ component =
         { handleAction = handleAction
         , handleQuery = handleQuery
         , initialize = Just Init
-        , finalize = Nothing
+        , finalize = Just Stop
         }
     }
+    
   where
-
   initialState :: i -> State
   initialState _ =
     { mAudioContext : Nothing
