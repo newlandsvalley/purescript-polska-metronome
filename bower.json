@@ -12,7 +12,7 @@
     "purescript-halogen": "https://github.com/slamdata/purescript-halogen.git#5.0.0-rc.4",
     "purescript-halogen-css": "https://github.com/newlandsvalley/purescript-halogen-css.git#master",
     "purescript-css": "^4.0.0",
-    "purescript-behaviors": "https://github.com/newlandsvalley/purescript-behaviors.git#master",
+    "purescript-behaviors": "^8.0.0",
     "purescript-affjax": "^9.0.0",
     "purescript-webaudio": "https://github.com/rskew/purescript-webaudio.git#master"
   },
