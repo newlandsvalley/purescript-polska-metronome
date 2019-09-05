@@ -1,5 +1,5 @@
-polska-metronome
-================
+purescript-polska-metronome
+===========================
 
 Try it [here](http://www.tradtunedb.org.uk/metronome).
 

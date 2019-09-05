@@ -1,5 +1,5 @@
 {
-  "name": "polska-metronome",
+  "name": "purescript-polska-metronome",
   "ignore": [
     "**/.*",
     "node_modules",
