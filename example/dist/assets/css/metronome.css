@@ -52,6 +52,10 @@ label {
   font-family: Georgia, serif;
 }
 
+.instruction-component > .instruction-text {
+  display: inline;
+}
+
 #canvas {
   display: block;
   margin: auto;

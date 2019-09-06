@@ -95,7 +95,6 @@ component =
       , HH.div
          [HP.id_ "instruction-group" ]
          [ renderTempoSlider state
-         , renderBpm state
          , renderSkewSlider state
          , renderPolskaTypeMenu state
          , renderStopStart state
@@ -201,6 +200,7 @@ renderTempoSlider state =
           , HP.max 240.0
           , HP.value (show state.bpm)
           ]
+      , renderBpm state
       ]
 
 -- | the slider is callibrated as follows-
@@ -248,7 +248,7 @@ renderSkewSlider state =
 renderBpm :: ∀ m. State -> H.ComponentHTML Action () m
 renderBpm state =
   HH.div
-    [ HP.class_ (H.ClassName "instruction-component")]
+    [ HP.class_ (H.ClassName "instruction-text")]
     [ HH.text (show state.bpm <> " bpm") ]
 
 
@@ -273,7 +273,7 @@ renderPolskaTypeMenu state =
         [ HP.class_ (H.ClassName "instruction-component")]
         [ HH.label
            [ HP.class_ (H.ClassName "MenuLabel") ]
-           [ HH.text "Polska Type:" ]
+           [ HH.text "polska type:" ]
         , HH.select
             [ HP.class_ $ ClassName "selection"
             , HE.onValueChange (Just <<< ChangePolskaType)
