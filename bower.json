@@ -14,7 +14,7 @@
     "purescript-css": "^4.0.0",
     "purescript-behaviors": "^8.0.0",
     "purescript-affjax": "^9.0.0",
-    "purescript-webaudio": "https://github.com/rskew/purescript-webaudio.git#master"
+    "purescript-webaudio": "^0.2.0"
   },
   "devDependencies": {
     "purescript-psci-support": "^4.0.0"
