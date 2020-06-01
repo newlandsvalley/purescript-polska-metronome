@@ -2,11 +2,11 @@
   "private": true,
   "scripts": {
     "build": "pulp build",
-    "example": "pulp build --main Example.Main --include example/src --to example/dist/metronome.js"
+    "example": "pulp build --no-check-main --main Example.Main --include example/src --to example/dist/metronome.js"
   },
   "devDependencies": {
-    "pulp": "^13.0.0",
-    "purescript": "^0.13.3",
+    "pulp": "^14.0.0",
+    "purescript": "^0.13.8",
     "purescript-psa": "^0.5.1",
     "webpack": "^3.6.0"
   }

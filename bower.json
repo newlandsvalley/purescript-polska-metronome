@@ -9,7 +9,7 @@
   "dependencies": {
     "purescript-prelude": "^4.1.1",
     "purescript-drawing": "^4.0.0",
-    "purescript-halogen": "https://github.com/slamdata/purescript-halogen.git#5.0.0-rc.4",
+    "purescript-halogen": "^5.0.0",
     "purescript-halogen-css": "https://github.com/newlandsvalley/purescript-halogen-css.git#master",
     "purescript-css": "^4.0.0",
     "purescript-behaviors": "^8.0.0",
@@ -18,8 +18,5 @@
   },
   "devDependencies": {
     "purescript-psci-support": "^4.0.0"
-  },
-  "resolutions": {
-    "purescript-typelevel-prelude": ">= 4.0.0 < 6.0.0"
   }
 }
