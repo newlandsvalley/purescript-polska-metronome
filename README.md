@@ -1,7 +1,7 @@
 purescript-polska-metronome
 ===========================
 
-Try it [here](http://www.tradtunedb.org.uk/metronome).
+Try it [here](http://www.tradtunedb.org.uk/#/metronome).
 
 Scandi polskas are usually notated in 3/4.  However, they exist in a variety of rhythms that are rarely, if ever, truly waltz-like. The characteristic rhythm has an emphasis on the first and third beat of the bar with the second beat understated.  For example, in the __short first beat__ polska, the first and third beats are strictly in tempo, but the second comes earlier than expected.
 
