@@ -16,13 +16,17 @@ Additionally, the __Even__ variant, with each beat in tempo, can be represented 
 To build as a library module
 ----------------------------
 
-    bower install
     npm run build
+
+or
+
+    bower install
+    pulp build
+
 
 To build the example
 --------------------
 
-    bower install
     npm run example
 
 and then navigate in your browser to /example/dist.  The browser must (of course) support web-audio.
