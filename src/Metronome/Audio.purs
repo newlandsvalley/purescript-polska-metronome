@@ -43,7 +43,7 @@ loadSoundBuffer ctx path name =
             , method = Left GET
             , responseFormat = ResponseFormat.arrayBuffer  }
 
-    case res.body of
+    case res <#> _.body of
         Left err ->
           pure []
         Right body -> do
