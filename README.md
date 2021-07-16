@@ -5,7 +5,7 @@ Try it [here](http://www.tradtunedb.org.uk/#/metronome).
 
 Scandi polskas are usually notated in 3/4.  However, they exist in a variety of rhythms that are rarely, if ever, truly waltz-like. The characteristic rhythm has an emphasis on the first and third beat of the bar with the second beat understated.  For example, in the __short first beat__ polska, the first and third beats are strictly in tempo, but the second comes earlier than expected.
 
-This project is therefore a metronome for 3/4 rhythms with three 'beat markers' drawn in a line, but where the position of the middle marker can be shifted, thus skewing the beat. Three polska variants are supported: 
+This project is a metronome for 3/4 rhythms with three 'beat markers' drawn in a line, but where the position of the middle marker can be shifted, thus skewing the beat. Three polska variants are supported: 
 
 *  Short first beat 
 *  Long first beat

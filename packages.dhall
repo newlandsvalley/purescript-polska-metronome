@@ -104,9 +104,8 @@ in  upstream
       }
 -------------------------------
 -}
-
 let upstream =
-      https://github.com/purescript/package-sets/releases/download/psc-0.13.8-20201217/packages.dhall sha256:f46d45e29977f3b57717b56d20a5ceac12532224516eea3012a4688f22ac1539
+      https://github.com/purescript/package-sets/releases/download/psc-0.14.2-20210713/packages.dhall sha256:654c3148cb995f642c73b4508d987d9896e2ad3ea1d325a1e826c034c0d3cd7b
 
 in  upstream
   with webaudio =
@@ -124,7 +123,66 @@ in  upstream
       , "tuples"
       , "web-events"
       ]
-    , repo =
-        "https://github.com/adkelley/purescript-webaudio.git"
-    , version = "v0.2.1"
+    , repo = "https://github.com/newlandsvalley/purescript-webaudio"
+    , version = "ps014"
+    }
+  with arraybuffer =
+    { dependencies =
+      [ "arraybuffer-types"
+      , "arrays"
+      , "effect"
+      , "float32"
+      , "foldable-traversable"
+      , "functions"
+      , "maybe"
+      , "nullable"
+      , "partial"
+      , "prelude"
+      , "refs"
+      , "tailrec"
+      , "typelevel"
+      , "typelevel-prelude"
+      , "uint"
+      , "unfoldable"
+      ]
+    , repo = "https://github.com/purescript-contrib/purescript-arraybuffer"
+    , version = "v11.0.1"
+    }   
+  with behaviors = 
+    { dependencies =
+      [ "psci-support"
+      , "effect"
+      , "ordered-collections"
+      , "filterable"
+      , "nullable"
+      , "event"
+      , "web-html"
+      , "web-events"
+      , "web-uievents"
+      ]
+    , repo = "https://github.com/mikesol/purescript-behaviors"
+    , version = "master"
+    } 
+  with event = 
+    { dependencies =
+      [ "arrays"
+      , "console"
+      , "control"
+      , "datetime"
+      , "effect"
+      , "either"
+      , "filterable"
+      , "foldable-traversable"
+      , "js-timers"
+      , "maybe"
+      , "now"
+      , "ordered-collections"
+      , "prelude"
+      , "psci-support"
+      , "refs"
+      , "tuples"
+      , "unsafe-reference"
+      ]
+    , repo = "https://github.com/mikesol/purescript-event"
+    , version = "master"
     }

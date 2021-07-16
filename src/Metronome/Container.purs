@@ -1,7 +1,8 @@
 module Metronome.Container where
 
 import Prelude
-import Global (readFloat)
+-- import Global (readFloat)
+import Data.Number (fromString) as Num
 import Effect.Aff.Class (class MonadAff)
 import Control.Monad.State.Class (class MonadState)
 import Effect (Effect)
@@ -54,7 +55,7 @@ data Action =
 data Query a =
   StartMetronome a
 
-component :: ∀ i o m. MonadAff m => H.Component HH.HTML Query i o m
+component :: ∀ i o m. MonadAff m => H.Component Query i o m
 component =
   H.mkComponent
     { initialState
@@ -87,13 +88,13 @@ component =
          [HP.class_ (H.ClassName "center") ]
          [HH.text "Polska Metronome" ]
       , HH.canvas
-         [ HP.id_ "canvas"
+         [ HP.id "canvas"
          , HP.height 350
          , HP.width  800
          ]
       -- debug only !!, HH.text ("skew: " <> (show state.skew))
       , HH.div
-         [HP.id_ "instruction-group" ]
+         [HP.id "instruction-group" ]
          [ renderTempoSlider state
          , renderSkewSlider state
          , renderPolskaTypeMenu state
@@ -118,12 +119,10 @@ component =
       _ <- stopAnimation
       pure unit
     ChangeTempo bpm -> do
-      state <- H.get
       _ <- stopAnimation
       _ <- H.modify (\st -> st { bpm = bpm })
       pure unit
     ChangeSkew skew -> do
-      state <- H.get
       _ <- stopAnimation
       _ <- H.modify (\st -> st { skew = skew })
       _ <- handleQuery (StartMetronome unit)
@@ -172,7 +171,7 @@ renderStopStart state =
     HH.div
       [ HP.class_ (H.ClassName "instruction-component")]
       [ HH.button
-        [ HE.onClick \_ -> Just command
+        [ HE.onClick \_ -> command
         , HP.class_ $ ClassName "hoverable"
         ]
         [ HH.text label ]
@@ -193,9 +192,9 @@ renderTempoSlider state =
          [ HH.text "change tempo:" ]
 
       , HH.input
-          [ HE.onValueInput (Just <<< ChangeTempo <<< toTempo)
+          [ HE.onValueInput (ChangeTempo <<< toTempo)
           , HP.type_ HP.InputRange
-          , HP.id_ "tempo-slider"
+          , HP.id "tempo-slider"
           , HP.min 60.0
           , HP.max 240.0
           , HP.value (show state.bpm)
@@ -219,11 +218,11 @@ renderSkewSlider state =
     toSkew :: PolskaType -> String -> Number
     toSkew polskaType s =
       if (polskaType == LongFirst) then
-        (0.0 - readFloat s) / 100.0
+        (0.0 - readNumber s) / 100.0
       else
-        (50.0 - readFloat s) / 100.0
+        (50.0 - readNumber s) / 100.0
     fromSkew :: PolskaType -> Number -> String
-    fromSkew polskaType n =
+    fromSkew polskaType _ =
       if (polskaType == LongFirst) then
         show ((0.0 - state.skew) * 100.0)
       else
@@ -236,9 +235,9 @@ renderSkewSlider state =
          [ HH.text "move 2nd marker:" ]
 
       , HH.input
-          [ HE.onValueInput (Just <<< ChangeSkew <<< toSkew state.polskaType)
+          [ HE.onValueInput (ChangeSkew <<< toSkew state.polskaType)
           , HP.type_ HP.InputRange
-          , HP.id_ "skew-slider"
+          , HP.id "skew-slider"
           , HP.min 0.0
           , HP.max 50.0
           , HP.value (fromSkew state.polskaType state.skew)
@@ -276,8 +275,8 @@ renderPolskaTypeMenu state =
            [ HH.text "polska type:" ]
         , HH.select
             [ HP.class_ $ ClassName "selection"
-            , HE.onValueChange (Just <<< ChangePolskaType)
-            , HP.id_  "polska-menu"
+            , HE.onValueChange (ChangePolskaType)
+            , HP.id  "polska-menu"
             , HP.value (show state.polskaType)
             ]
             (map f $ polskaTypeOptions state.polskaType)
@@ -328,3 +327,7 @@ recalculateSkew state newPolskaType =
     0.0 - state.skew
   else
     state.skew
+
+readNumber :: String -> Number 
+readNumber s = 
+  fromMaybe 0.0 $ Num.fromString s
