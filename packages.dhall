@@ -105,7 +105,8 @@ in  upstream
 -------------------------------
 -}
 let upstream =
-      https://github.com/purescript/package-sets/releases/download/psc-0.14.2-20210713/packages.dhall sha256:654c3148cb995f642c73b4508d987d9896e2ad3ea1d325a1e826c034c0d3cd7b
+      https://github.com/purescript/package-sets/releases/download/psc-0.15.4-20220816/packages.dhall
+        sha256:8b4467b4b5041914f9b765779c8936d6d4c230b1f60eb64f6269c71812fd7e98
 
 in  upstream
   with webaudio =
@@ -113,76 +114,23 @@ in  upstream
       [ "aff"
       , "arraybuffer"
       , "arraybuffer-types"
-      , "arrays"
       , "effect"
-      , "foldable-traversable"
-      , "lists"
-      , "math"
       , "maybe"
-      , "strings"
-      , "tuples"
+      , "prelude"
+      , "psci-support"
       , "web-events"
       ]
     , repo = "https://github.com/newlandsvalley/purescript-webaudio"
-    , version = "ps014"
+    , version = "master"
     }
-  with arraybuffer =
+  with drawing =
     { dependencies =
-      [ "arraybuffer-types"
-      , "arrays"
-      , "effect"
-      , "float32"
-      , "foldable-traversable"
-      , "functions"
-      , "maybe"
-      , "nullable"
-      , "partial"
-      , "prelude"
-      , "refs"
-      , "tailrec"
-      , "typelevel"
-      , "typelevel-prelude"
-      , "uint"
-      , "unfoldable"
+      [ "canvas"
+      , "lists"
+      , "numbers"
+      , "integers"
+      , "colors"
       ]
-    , repo = "https://github.com/purescript-contrib/purescript-arraybuffer"
-    , version = "v11.0.1"
-    }   
-  with behaviors = 
-    { dependencies =
-      [ "psci-support"
-      , "effect"
-      , "ordered-collections"
-      , "filterable"
-      , "nullable"
-      , "event"
-      , "web-html"
-      , "web-events"
-      , "web-uievents"
-      ]
-    , repo = "https://github.com/mikesol/purescript-behaviors"
-    , version = "master"
-    } 
-  with event = 
-    { dependencies =
-      [ "arrays"
-      , "console"
-      , "control"
-      , "datetime"
-      , "effect"
-      , "either"
-      , "filterable"
-      , "foldable-traversable"
-      , "js-timers"
-      , "maybe"
-      , "now"
-      , "ordered-collections"
-      , "prelude"
-      , "psci-support"
-      , "refs"
-      , "tuples"
-      , "unsafe-reference"
-      ]
-    , repo = "https://github.com/mikesol/purescript-event"
-    , version = "master"
+    , repo = "https://github.com/newlandsvalley/purescript-drawing"
+    , version = "ps015"
     }

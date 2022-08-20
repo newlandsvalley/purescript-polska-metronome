@@ -4,7 +4,7 @@ module Metronome.Audio
 import Prelude
 
 import Audio.WebAudio.AudioBufferSourceNode (defaultStartOptions, setBuffer, startBufferSource)
-import Audio.WebAudio.BaseAudioContext (createBufferSource, createGain, currentTime, decodeAudioDataAsync, destination)
+import Audio.WebAudio.BaseAudioContext (createBufferSource, createGain, decodeAudioDataAsync, destination)
 import Audio.WebAudio.GainNode (setGain)
 import Audio.WebAudio.Types (AudioContext, AudioBuffer, connect)
 import Control.Parallel (parallel, sequential)
@@ -16,7 +16,7 @@ import Data.Maybe (Maybe(..))
 import Data.Traversable (traverse)
 import Effect (Effect)
 import Effect.Aff (Aff)
-import Affjax (request, defaultRequest)
+import Affjax.Web (request, defaultRequest)
 import Affjax.ResponseFormat as ResponseFormat
 import Metronome.Beat (BeatNumber(..), Beat(..), Bpm, collisionTolerance)
 
@@ -44,7 +44,7 @@ loadSoundBuffer ctx path name =
             , responseFormat = ResponseFormat.arrayBuffer  }
 
     case res <#> _.body of
-        Left err ->
+        Left _err ->
           pure []
         Right body -> do
          buffer <- decodeAudioDataAsync ctx body
@@ -104,7 +104,7 @@ playBeat ctx bpm skew beatMap (Beat { number, proportion }) =
       case lookup number beatMap of
         Just buffer ->
           do
-            startTime <- currentTime ctx
+            -- startTime <- currentTime ctx
             src <- createBufferSource ctx
             gain <- createGain ctx
             _ <- setGain volume gain

@@ -6,7 +6,7 @@ import Data.Newtype (class Newtype)
 import Data.Time.Duration (Seconds(..))
 import Data.Tuple (Tuple(..))
 import FRP.Behavior (Behavior)
-import Math ((%))
+import Data.Number ((%))
 import Prelude (class Eq, class Ord, class Show, map, show, (*), (-), (+), (/), (<>), (>))
 
 data PolskaType =

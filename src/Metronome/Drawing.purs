@@ -5,7 +5,7 @@ import Metronome.Beat
 
 import Color (Color, rgb, white)
 import Graphics.Drawing (Drawing, circle, rectangle, filled, fillColor)
-import Math (cos, pi, sin)
+import Data.Number (cos, pi, sin)
 import Prelude ((*), (+), (-), (/), (<>), (&&), (==), (<))
 
 -- the position of a beat marker on the canvas
