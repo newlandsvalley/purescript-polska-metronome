@@ -1,7 +1,6 @@
 module Metronome.Container where
 
 import Prelude
--- import Global (readFloat)
 import Data.Number (fromString) as Num
 import Effect.Aff.Class (class MonadAff)
 import Control.Monad.State.Class (class MonadState)
@@ -21,7 +20,7 @@ import FRP.Behavior.Time (seconds)
 import Partial.Unsafe (unsafePartial)
 import Data.Maybe (Maybe(..), fromJust, fromMaybe)
 import Data.Map (empty)
-import Data.Int (fromString)
+import Data.Int (fromString, round)
 import Graphics.Drawing (render) as Drawing
 import Metronome.Drawing (markers, metronome)
 import Metronome.Beat (Bpm, PolskaType(..), toBeats)
@@ -92,12 +91,11 @@ component =
          , HP.height 350
          , HP.width  800
          ]
-      -- debug only !!, HH.text ("skew: " <> (show state.skew))
       , HH.div
          [HP.id "instruction-group" ]
-         [ renderTempoSlider state
+         [ renderPolskaTypeMenu state
+         , renderTempoSlider state
          , renderSkewSlider state
-         , renderPolskaTypeMenu state
          , renderStopStart state
          ]
       ]
@@ -242,6 +240,7 @@ renderSkewSlider state =
           , HP.max 50.0
           , HP.value (fromSkew state.polskaType state.skew)
           ]
+      , renderSkew state
       ]
 
 renderBpm :: ∀ m. State -> H.ComponentHTML Action () m
@@ -249,7 +248,12 @@ renderBpm state =
   HH.div
     [ HP.class_ (H.ClassName "instruction-text")]
     [ HH.text (show state.bpm <> " bpm") ]
-
+    
+renderSkew :: ∀ m. State -> H.ComponentHTML Action () m
+renderSkew state =
+  HH.div
+    [ HP.class_ (H.ClassName "instruction-text")]
+    [ HH.text (show (0 - (round $ state.skew * 100.0)) <> "%") ]
 
 -- | a menu option is a string representing the option and a boolean indicating
 -- | whether it is selected
