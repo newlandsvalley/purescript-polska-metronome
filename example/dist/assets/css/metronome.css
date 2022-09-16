@@ -45,10 +45,9 @@ label {
 }
 
 .instruction-component {
-  float: left;
   display: inline;
   margin: 0 0 0 30px;
-  font-size: 1.2em;
+  font-size: 1.1em;
   font-family: Georgia, serif;
 }
 
@@ -58,6 +57,12 @@ label {
 
 #canvas {
   display: block;
+  margin: auto;
+}
+
+#button-group {
+  display: block;
+  width: 700px;
   margin: auto;
 }
 

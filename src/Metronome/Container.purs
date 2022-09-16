@@ -23,7 +23,7 @@ import Data.Map (empty)
 import Data.Int (fromString, round)
 import Graphics.Drawing (render) as Drawing
 import Metronome.Drawing (markers, metronome)
-import Metronome.Beat (Bpm, PolskaType(..), toBeats)
+import Metronome.Beat (Beat(..), BeatNumber(..), Bpm, PolskaType(..), toBeats)
 
 type Slot = H.Slot Query Void
 
@@ -34,6 +34,7 @@ type State =
   , beatMap :: BeatMap
   , bpm :: Bpm
   , skew :: Number
+  , silentBeatOne :: Boolean
   , isRunning :: Boolean
   , runningMetronome :: Effect Unit
   }
@@ -45,6 +46,7 @@ data Action =
   | ChangeTempo Bpm
   | ChangeSkew Number
   | ChangePolskaType String
+  | MakeBeatTwoSilent Boolean
 
 -- the only reason that we need Query at all is that we need to chain
 -- the playing of the metronome after initialisation or after button settings
@@ -76,6 +78,7 @@ component =
     , beatMap : empty
     , bpm : 120
     , skew : 0.25
+    , silentBeatOne : false
     , isRunning : false
     , runningMetronome : mempty
     }
@@ -91,12 +94,19 @@ component =
          , HP.height 350
          , HP.width  800
          ]
-      , HH.div
-         [HP.id "instruction-group" ]
-         [ renderPolskaTypeMenu state
-         , renderTempoSlider state
-         , renderSkewSlider state
-         , renderStopStart state
+      , HH.div_
+         [ HH.div 
+             [HP.id "button-group" ]
+             [
+               renderSilentBeatTwo state
+             , renderStopStart state
+             ]
+         , HH.div   
+             [HP.id "instruction-group" ]
+             [ renderPolskaTypeMenu state
+             , renderTempoSlider state
+             , renderSkewSlider state
+             ]
          ]
       ]
 
@@ -134,6 +144,10 @@ component =
       _ <- H.modify (\st -> st { polskaType = polskaType, skew = skew })
       _ <- handleQuery (StartMetronome unit)
       pure unit
+    MakeBeatTwoSilent makeSilent -> do
+      _ <- stopAnimation
+      _ <- H.modify (\st -> st { silentBeatOne = makeSilent })
+      pure unit
 
 handleQuery :: ∀ o a m. MonadAff m => Query a -> H.HalogenM State Action () o m (Maybe a)
 handleQuery = case _ of
@@ -146,21 +160,37 @@ handleQuery = case _ of
     graphicsCtx <- H.liftEffect  $ getContext2D canvas
     runningMetronome <- H.liftEffect  $ animate (toBeats state.polskaType state.skew state.bpm seconds) \beat -> do
          _ <- Drawing.render graphicsCtx (metronome state.polskaType state.skew state.bpm beat)
-         playBeat audioCtx state.bpm state.skew state.beatMap beat
+         maybePlayBeat audioCtx state beat
     _ <- H.modify (\st -> st { mGraphicsContext = Just graphicsCtx
                              , isRunning = true
                              , runningMetronome = runningMetronome })
     pure (Just next)
 
+-- we always attempt to play the beat when the moving circle hits a rigid beat marker
+-- except for the case where the user opts for a silent second beat (Beat One)
+maybePlayBeat :: AudioContext -> State -> Beat -> Effect Unit
+maybePlayBeat audioCtx state beat@(Beat { number, proportion }) = 
+  if (number == One) && (state.silentBeatOne) then 
+    pure unit 
+  else
+    playBeat audioCtx state.bpm state.skew state.beatMap beat
 
--- rendering functions
 renderStopStart :: ∀ m. State -> H.ComponentHTML Action () m
 renderStopStart state =
+  HH.div
+    [ HP.class_ (H.ClassName "instruction-component")]
+    [ HH.text ("metronome:")
+    , renderStopStartButton state 
+    ]
+
+-- rendering function
+renderStopStartButton :: ∀ m. State -> H.ComponentHTML Action () m
+renderStopStartButton state =
   let
     label =
       if state.isRunning
-        then "Stop"
-        else "Start"
+        then "stop"
+        else "start"
     command =
       if state.isRunning
         then Stop
@@ -174,6 +204,42 @@ renderStopStart state =
         ]
         [ HH.text label ]
       ]
+
+renderSilentBeatTwo :: ∀ m. State -> H.ComponentHTML Action () m
+renderSilentBeatTwo state =
+  let
+    soundedState =
+      if state.silentBeatOne
+        then "silent"
+        else "sounded"
+  in 
+    HH.div
+      [ HP.class_ (H.ClassName "instruction-component")]
+      [ HH.text ("beat two: " <> soundedState)
+      , renderMakeSilent state 
+      ]
+      
+renderMakeSilent :: ∀ m. State -> H.ComponentHTML Action () m
+renderMakeSilent state =
+  let
+    label =
+      if state.silentBeatOne
+        then "turn on"
+        else "turn off"
+    command =
+      if state.silentBeatOne
+        then (MakeBeatTwoSilent false)
+        else (MakeBeatTwoSilent true)
+  in
+    HH.div
+      [ HP.class_ (H.ClassName "instruction-component")]
+      [ HH.button
+        [ HE.onClick \_ -> command
+        , HP.class_ $ ClassName "hoverable"
+        ]
+        [ HH.text label ]
+      ]
+
 
 renderTempoSlider :: ∀ m. State -> H.ComponentHTML Action () m
 renderTempoSlider state =
