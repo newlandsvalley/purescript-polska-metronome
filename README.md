@@ -18,12 +18,6 @@ To build as a library module
 
     npm run build
 
-or
-
-    bower install
-    pulp build
-
-
 To build the example
 --------------------
 
