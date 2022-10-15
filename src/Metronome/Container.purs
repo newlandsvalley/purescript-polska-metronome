@@ -179,7 +179,9 @@ renderStopStart :: ∀ m. State -> H.ComponentHTML Action () m
 renderStopStart state =
   HH.div
     [ HP.class_ (H.ClassName "instruction-component")]
-    [ HH.text ("metronome:")
+    [ HH.label
+      [ HP.class_ (H.ClassName "labelHorizontal") ]
+      [ HH.text "metronome:" ]
     , renderStopStartButton state 
     ]
 
@@ -210,12 +212,14 @@ renderSilentBeatTwo state =
   let
     soundedState =
       if state.silentBeatOne
-        then "silent"
-        else "sounded"
+        then "off"
+        else "on"
   in 
     HH.div
       [ HP.class_ (H.ClassName "instruction-component")]
-      [ HH.text ("beat two: " <> soundedState)
+      [ HH.label
+        [ HP.class_ (H.ClassName "labelHorizontal") ]
+        [ HH.text ("beat 2: " <> soundedState) ]
       , renderMakeSilent state 
       ]
       

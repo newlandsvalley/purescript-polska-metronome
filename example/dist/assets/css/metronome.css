@@ -8,6 +8,8 @@ label {
   text-align: right;
   width: 100px;
   vertical-align: top;
+	font-size: 1.25em;
+	margin-top: 8px;
 }
 
 .hoverable {
@@ -33,10 +35,12 @@ label {
 
 #tempo-slider {
   width: 160px;
+  margin-top: 25px;
 }
 
 #skew-slider {
   width: 160px;
+  margin-top: 25px;
 }
 
 #polska-menu {
