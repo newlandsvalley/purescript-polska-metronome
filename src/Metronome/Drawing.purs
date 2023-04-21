@@ -3,10 +3,11 @@ module Metronome.Drawing
 
 import Metronome.Beat
 
-import Color (Color, rgb, white)
+import Color (Color, rgb, white, graytone)
 import Graphics.Drawing (Drawing, circle, rectangle, filled, fillColor)
 import Data.Number (cos, pi, sin)
 import Prelude ((*), (+), (-), (/), (<>), (&&), (==), (<))
+
 
 -- the position of a beat marker on the canvas
 data MarkerPosition =
@@ -34,13 +35,14 @@ bigCircleRadius =
 smallCircleRadius :: Number
 smallCircleRadius = 23.0
 
--- | the radius of rotation of a circle below the line
+-- | the radius of rotation of a circle below the linen when the movable circle is centered
 -- | forwards on beats 0 and 1  (normalpolska)
 -- | backwards on beats 1 and 2  (finnskohpols)
 circleBelowRotationRadius :: Number
 circleBelowRotationRadius = 150.0
 
 -- | the radius of the rotation of a circle above the line
+-- | which must be twice that of the lower circle radius.
 -- | back on beat 2 (normalpolska)
 -- | forwrds on beat 0 (finnskogpols)
 circleAboveRotationRadius :: Number
@@ -52,9 +54,10 @@ leftMargin :: Number
 leftMargin =
   50.0
 
--- | everything is placed relative to the same vertical y coordinate
-yPos :: Number
-yPos = 180.0
+-- | everything is placed relative to a horizontal axis at the same vertical y coordinate
+-- | i.e. the centre of each fixed circle lies on this axis
+yPosAxis :: Number
+yPosAxis = 180.0
 
 green :: Color
 green = rgb 102 153 102
@@ -72,11 +75,11 @@ staticCircle x isCollided =
   if isCollided then
     filled
       (fillColor gray)
-      (circle x yPos outerHaloRadius)
+      (circle x yPosAxis outerHaloRadius)
     <>
       filled
         (fillColor white)
-        (circle x yPos innerHaloRadius)
+        (circle x yPosAxis innerHaloRadius)
     <>
       uncollidedCircle x
   else
@@ -88,11 +91,11 @@ uncollidedCircle :: Number -> Drawing
 uncollidedCircle x =
     filled
       (fillColor olive)
-      (circle x yPos bigCircleRadius)
+      (circle x yPosAxis bigCircleRadius)
   <>
     filled
       (fillColor white)
-      (circle x yPos smallCircleRadius)
+      (circle x yPosAxis smallCircleRadius)
 
 -- | Create a drawing of a moving circle which alters position
 -- | according to the beat and which may be skewed smaller
@@ -131,7 +134,7 @@ movingCircleShortFirst skew (Beat { number, proportion }) =
         One -> leftMargin + (3.0 * circleBelowRotationRadius) - deltaRadius
         -- second circle forward will also have its centre shifted left if skewed
         Zero -> leftMargin + circleBelowRotationRadius - deltaRadius
-    centreY = yPos
+    centreY = yPosAxis
     theta =
       case number of
         Two -> proportion * pi                                -- backwards
@@ -172,7 +175,7 @@ movingCircleFinnskogpols skew (Beat { number, proportion }) =
         One -> leftMargin + (3.0 * circleBelowRotationRadius) - deltaRadius
         -- second circle back will also have its centre shifted left if skewed
         Two -> leftMargin + circleBelowRotationRadius - deltaRadius
-    centreY = yPos
+    centreY = yPosAxis
     theta =
       case number of
         Zero -> (1.0 - proportion) * pi               -- forwwards
@@ -243,12 +246,11 @@ skewedMiddleMarker skew isCollided =
   in
     staticCircle xPos isCollided
 
-
 backdrop :: Drawing
 backdrop
   = filled
-      (fillColor white)
-      (rectangle 0.0 0.0 800.0 350.0)
+      (fillColor (graytone 0.8))
+      (rectangle 0.0 0.0 700.0 325.0)
 
 -- | Work out if the moving ball has collided with the narker for the given
 -- | beat number.  This happens if the current beat coincides and the
