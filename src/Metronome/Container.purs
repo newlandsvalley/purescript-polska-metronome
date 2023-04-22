@@ -20,9 +20,9 @@ import FRP.Behavior.Time (seconds)
 import Partial.Unsafe (unsafePartial)
 import Data.Maybe (Maybe(..), fromJust, fromMaybe)
 import Data.Map (empty)
-import Data.Int (fromString, round)
+import Data.Int (fromString, round, toNumber)
 import Graphics.Drawing (render) as Drawing
-import Metronome.Drawing (markers, metronome)
+import Metronome.Drawing (canvasHeight, canvasWidth, markers, metronome)
 import Metronome.Beat (Beat(..), BeatNumber(..), Bpm, PolskaType(..), toBeats)
 
 type Slot = H.Slot Query Void
@@ -34,6 +34,7 @@ type State =
   , beatMap :: BeatMap
   , bpm :: Bpm
   , skew :: Number
+  , scale :: Number  -- the scale of the animated drawing
   , silentBeatOne :: Boolean
   , isRunning :: Boolean
   , runningMetronome :: Effect Unit
@@ -78,6 +79,7 @@ component =
     , beatMap : empty
     , bpm : 120
     , skew : 0.25
+    , scale : 0.5
     , silentBeatOne : false
     , isRunning : false
     , runningMetronome : mempty
@@ -91,8 +93,8 @@ component =
          [HH.text "Polska Metronome" ]
       , HH.canvas
          [ HP.id "canvas"
-         , HP.height 350
-         , HP.width  800
+         , HP.height (scaleDimension canvasHeight state.scale)
+         , HP.width  (scaleDimension canvasWidth  state.scale)
          ]
       , HH.div_
          [ HH.div 
@@ -159,7 +161,7 @@ handleQuery = case _ of
       audioCtx = unsafePartial (fromJust state.mAudioContext)
     graphicsCtx <- H.liftEffect  $ getContext2D canvas
     runningMetronome <- H.liftEffect  $ animate (toBeats state.polskaType state.skew state.bpm seconds) \beat -> do
-         _ <- Drawing.render graphicsCtx (metronome state.polskaType state.skew state.bpm beat)
+         _ <- Drawing.render graphicsCtx (metronome state.polskaType state.skew state.bpm beat state.scale)
          maybePlayBeat audioCtx state beat
     _ <- H.modify (\st -> st { mGraphicsContext = Just graphicsCtx
                              , isRunning = true
@@ -376,7 +378,7 @@ stopAnimation = do
   -- stop the metronome immediately
   _ <- H.liftEffect $ setTimeout 0 state.runningMetronome
   -- repaint the static markers (with no moving ball) at the appropriate skew
-  _ <- H.liftEffect $ Drawing.render graphicsCtx (markers state.polskaType state.skew)
+  _ <- H.liftEffect $ Drawing.render graphicsCtx (markers state.polskaType state.skew state.scale)
   -- save state
   _ <- H.modify (\st -> st { isRunning = false
                            , runningMetronome = mempty :: Effect Unit })
@@ -405,3 +407,7 @@ recalculateSkew state newPolskaType =
 readNumber :: String -> Number 
 readNumber s = 
   fromMaybe 0.0 $ Num.fromString s
+
+scaleDimension :: Int -> Number -> Int 
+scaleDimension dimension scale =
+  round (scale * (toNumber dimension))
