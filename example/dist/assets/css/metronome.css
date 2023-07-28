@@ -12,6 +12,14 @@ label {
 	margin-top: 8px;
 }
 
+
+.labelAlignment {
+  /* align labels at the LHS of a frame */
+  display: inline-block;
+  width: 175px;
+  font-size: 1.1em;
+}
+
 .hoverable {
   border: none;
   border-radius: 6px;
@@ -33,6 +41,22 @@ label {
   text-align: center;
 }
 
+.leftPane {
+  width: 650px;
+  float: left;
+}
+
+.rightPane {
+  float: left;
+}
+
+.rightPanelComponent {
+  /* align items in the RHS panel */
+  /* margin: 10px 0 0 0; */
+  font-size: 1.2em;
+  font-family: Georgia, serif;
+}
+
 #tempo-slider {
   width: 160px;
   margin-top: 25px;
@@ -48,30 +72,11 @@ label {
   font-size: 1.0em;
 }
 
-.instruction-component {
-  display: inline;
-  margin: 0 0 0 30px;
-  font-size: 1.1em;
-  font-family: Georgia, serif;
-}
-
 .instruction-component > .instruction-text {
   display: inline;
 }
 
 #canvas {
   display: block;
-  margin: auto;
-}
-
-#button-group {
-  display: block;
-  width: 700px;
-  margin: auto;
-}
-
-#instruction-group {
-  display: block;
-  width: 1200px;
-  margin: auto;
+  margin-left: 40px;
 }

@@ -1,29 +1,30 @@
 module Metronome.Container where
 
 import Prelude
-import Data.Number (fromString) as Num
-import Effect.Aff.Class (class MonadAff)
-import Control.Monad.State.Class (class MonadState)
-import Effect (Effect)
-import Effect.Timer (setTimeout)
-import Halogen as H
-import Halogen.HTML as HH
-import Halogen.HTML.Events as HE
-import Halogen.HTML.Properties as HP
-import Halogen.HTML.Core (ClassName(..), HTML)
-import Audio.WebAudio.Types (AudioContext)
+
 import Audio.WebAudio.BaseAudioContext (newAudioContext)
-import Metronome.Audio (BeatMap, loadBeatBuffers, playBeat)
-import Graphics.Canvas (Context2D, getCanvasElementById, getContext2D)
+import Audio.WebAudio.Types (AudioContext)
+import Control.Monad.State.Class (class MonadState)
+import Data.Int (fromString, round, toNumber)
+import Data.Map (empty)
+import Data.Maybe (Maybe(..), fromJust, fromMaybe)
+import Data.Number (fromString) as Num
+import Effect (Effect)
+import Effect.Aff.Class (class MonadAff)
+import Effect.Timer (setTimeout)
 import FRP.Behavior (animate)
 import FRP.Behavior.Time (seconds)
-import Partial.Unsafe (unsafePartial)
-import Data.Maybe (Maybe(..), fromJust, fromMaybe)
-import Data.Map (empty)
-import Data.Int (fromString, round, toNumber)
+import Graphics.Canvas (Context2D, getCanvasElementById, getContext2D)
 import Graphics.Drawing (render) as Drawing
-import Metronome.Drawing (canvasHeight, canvasWidth, markers, metronome)
+import Halogen as H
+import Halogen.HTML as HH
+import Halogen.HTML.Core (ClassName(..), HTML)
+import Halogen.HTML.Events as HE
+import Halogen.HTML.Properties as HP
+import Metronome.Audio (BeatMap, loadBeatBuffers, playBeat)
 import Metronome.Beat (Beat(..), BeatNumber(..), Bpm, PolskaType(..), toBeats)
+import Metronome.Drawing (canvasHeight, canvasWidth, markers, metronome)
+import Partial.Unsafe (unsafePartial)
 
 type Slot = H.Slot Query Void
 
@@ -79,7 +80,7 @@ component =
     , beatMap : empty
     , bpm : 120
     , skew : 0.25
-    , scale : 0.5
+    , scale : 0.80
     , silentBeatOne : false
     , isRunning : false
     , runningMetronome : mempty
@@ -91,25 +92,23 @@ component =
       [ HH.h1
          [HP.class_ (H.ClassName "center") ]
          [HH.text "Polska Metronome" ]
-      , HH.canvas
-         [ HP.id "canvas"
-         , HP.height (scaleDimension canvasHeight state.scale)
-         , HP.width  (scaleDimension canvasWidth  state.scale)
-         ]
-      , HH.div_
-         [ HH.div 
-             [HP.id "button-group" ]
-             [
-               renderSilentBeatTwo state
-             , renderStopStart state
-             ]
-         , HH.div   
-             [HP.id "instruction-group" ]
-             [ renderPolskaTypeMenu state
-             , renderTempoSlider state
-             , renderSkewSlider state
-             ]
-         ]
+      , HH.div
+        [ HP.class_ (H.ClassName "leftPane") ]
+        [ HH.canvas
+            [ HP.id "canvas"
+            , HP.height (scaleDimension canvasHeight state.scale)
+            , HP.width  (scaleDimension canvasWidth  state.scale)
+            ]
+        ]
+      , HH.div
+        [ HP.class_ (H.ClassName "rightPane") ]
+        [ 
+          renderStopStart state
+        , renderSilentBeatTwo state
+        , renderPolskaTypeMenu state
+        , renderTempoSlider state
+        , renderSkewSlider state
+        ]
       ]
 
   handleAction ∷ Action → H.HalogenM State Action () o m Unit
@@ -180,9 +179,9 @@ maybePlayBeat audioCtx state beat@(Beat { number, proportion }) =
 renderStopStart :: ∀ m. State -> H.ComponentHTML Action () m
 renderStopStart state =
   HH.div
-    [ HP.class_ (H.ClassName "instruction-component")]
+    [ HP.class_ (H.ClassName "rightPanelComponent")]
     [ HH.label
-      [ HP.class_ (H.ClassName "labelHorizontal") ]
+      [ HP.class_ (H.ClassName "labelAlignment") ]
       [ HH.text "metronome:" ]
     , renderStopStartButton state 
     ]
@@ -201,7 +200,7 @@ renderStopStartButton state =
         else Start
   in
     HH.div
-      [ HP.class_ (H.ClassName "instruction-component")]
+      [ ]
       [ HH.button
         [ HE.onClick \_ -> command
         , HP.class_ $ ClassName "hoverable"
@@ -218,9 +217,9 @@ renderSilentBeatTwo state =
         else "on"
   in 
     HH.div
-      [ HP.class_ (H.ClassName "instruction-component")]
+      [ HP.class_ (H.ClassName "rightPanelComponent")]
       [ HH.label
-        [ HP.class_ (H.ClassName "labelHorizontal") ]
+        [ HP.class_ (H.ClassName "labelAlignment") ]
         [ HH.text ("beat 2: " <> soundedState) ]
       , renderMakeSilent state 
       ]
@@ -238,7 +237,7 @@ renderMakeSilent state =
         else (MakeBeatTwoSilent true)
   in
     HH.div
-      [ HP.class_ (H.ClassName "instruction-component")]
+      [ ]
       [ HH.button
         [ HE.onClick \_ -> command
         , HP.class_ $ ClassName "hoverable"
@@ -256,9 +255,9 @@ renderTempoSlider state =
       fromMaybe 120 $ fromString s
   in
     HH.div
-      [ HP.class_ (H.ClassName "instruction-component")]
+      [ HP.class_ (H.ClassName "rightPanelComponent")]
       [ HH.label
-         [ HP.class_ (H.ClassName "sliderLabel") ]
+         [ HP.class_ (H.ClassName "labelAlignment") ]
          [ HH.text "change tempo:" ]
 
       , HH.input
@@ -299,9 +298,9 @@ renderSkewSlider state =
         show ((0.5 - state.skew) * 100.0)
   in
     HH.div
-      [ HP.class_ (H.ClassName "instruction-component")]
+      [ HP.class_ (H.ClassName "rightPanelComponent")]
       [ HH.label
-         [ HP.class_ (H.ClassName "sliderLabel") ]
+         [ HP.class_ (H.ClassName "labelAlignment") ]
          [ HH.text "move 2nd marker:" ]
 
       , HH.input
@@ -345,9 +344,9 @@ renderPolskaTypeMenu state =
               [ HH.text text]
     in
       HH.div
-        [ HP.class_ (H.ClassName "instruction-component")]
+        [ HP.class_ (H.ClassName "rightPanelComponent")]
         [ HH.label
-           [ HP.class_ (H.ClassName "MenuLabel") ]
+           [ HP.class_ (H.ClassName "labelAlignment") ]
            [ HH.text "polska type:" ]
         , HH.select
             [ HP.class_ $ ClassName "selection"
