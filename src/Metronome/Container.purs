@@ -80,7 +80,7 @@ component =
     , beatMap : empty
     , bpm : 120
     , skew : 0.25
-    , scale : 0.80
+    , scale : 0.90
     , silentBeatOne : false
     , isRunning : false
     , runningMetronome : mempty
@@ -94,20 +94,20 @@ component =
          [HH.text "Polska Metronome" ]
       , HH.div
         [ HP.class_ (H.ClassName "leftPane") ]
-        [ HH.canvas
-            [ HP.id "canvas"
-            , HP.height (scaleDimension canvasHeight state.scale)
-            , HP.width  (scaleDimension canvasWidth  state.scale)
-            ]
-        ]
-      , HH.div
-        [ HP.class_ (H.ClassName "rightPane") ]
         [ 
           renderStopStart state
         , renderSilentBeatTwo state
         , renderPolskaTypeMenu state
         , renderTempoSlider state
         , renderSkewSlider state
+        ]
+      , HH.div
+        [ HP.class_ (H.ClassName "rightPane") ]
+        [ HH.canvas
+            [ HP.id "canvas"
+            , HP.height (scaleDimension canvasHeight state.scale)
+            , HP.width  (scaleDimension canvasWidth  state.scale)
+            ]
         ]
       ]
 
@@ -179,7 +179,7 @@ maybePlayBeat audioCtx state beat@(Beat { number, proportion }) =
 renderStopStart :: ∀ m. State -> H.ComponentHTML Action () m
 renderStopStart state =
   HH.div
-    [ HP.class_ (H.ClassName "rightPanelComponent")]
+    [ HP.class_ (H.ClassName "leftPanelComponent")]
     [ HH.label
       [ HP.class_ (H.ClassName "labelAlignment") ]
       [ HH.text "metronome:" ]
@@ -187,6 +187,7 @@ renderStopStart state =
     ]
 
 -- rendering function
+
 renderStopStartButton :: ∀ m. State -> H.ComponentHTML Action () m
 renderStopStartButton state =
   let
@@ -199,14 +200,11 @@ renderStopStartButton state =
         then Stop
         else Start
   in
-    HH.div
-      [ ]
-      [ HH.button
-        [ HE.onClick \_ -> command
-        , HP.class_ $ ClassName "hoverable"
-        ]
-        [ HH.text label ]
+    HH.button
+      [ HE.onClick \_ -> command
+      , HP.class_ $ ClassName "hoverable"
       ]
+      [ HH.text label ]
 
 renderSilentBeatTwo :: ∀ m. State -> H.ComponentHTML Action () m
 renderSilentBeatTwo state =
@@ -217,7 +215,7 @@ renderSilentBeatTwo state =
         else "on"
   in 
     HH.div
-      [ HP.class_ (H.ClassName "rightPanelComponent")]
+      [ HP.class_ (H.ClassName "leftPanelComponent")]
       [ HH.label
         [ HP.class_ (H.ClassName "labelAlignment") ]
         [ HH.text ("beat 2: " <> soundedState) ]
@@ -236,15 +234,11 @@ renderMakeSilent state =
         then (MakeBeatTwoSilent false)
         else (MakeBeatTwoSilent true)
   in
-    HH.div
-      [ ]
-      [ HH.button
-        [ HE.onClick \_ -> command
-        , HP.class_ $ ClassName "hoverable"
-        ]
-        [ HH.text label ]
+    HH.button
+      [ HE.onClick \_ -> command
+      , HP.class_ $ ClassName "hoverable"
       ]
-
+      [ HH.text label ]
 
 renderTempoSlider :: ∀ m. State -> H.ComponentHTML Action () m
 renderTempoSlider state =
@@ -255,7 +249,7 @@ renderTempoSlider state =
       fromMaybe 120 $ fromString s
   in
     HH.div
-      [ HP.class_ (H.ClassName "rightPanelComponent")]
+      [ HP.class_ (H.ClassName "leftPanelComponent")]
       [ HH.label
          [ HP.class_ (H.ClassName "labelAlignment") ]
          [ HH.text "change tempo:" ]
@@ -298,7 +292,7 @@ renderSkewSlider state =
         show ((0.5 - state.skew) * 100.0)
   in
     HH.div
-      [ HP.class_ (H.ClassName "rightPanelComponent")]
+      [ HP.class_ (H.ClassName "leftPanelComponent")]
       [ HH.label
          [ HP.class_ (H.ClassName "labelAlignment") ]
          [ HH.text "move 2nd marker:" ]
@@ -317,13 +311,13 @@ renderSkewSlider state =
 renderBpm :: ∀ m. State -> H.ComponentHTML Action () m
 renderBpm state =
   HH.div
-    [ HP.class_ (H.ClassName "instruction-text")]
+    [ HP.class_ (H.ClassName "slider-state")]
     [ HH.text (show state.bpm <> " bpm") ]
     
 renderSkew :: ∀ m. State -> H.ComponentHTML Action () m
 renderSkew state =
   HH.div
-    [ HP.class_ (H.ClassName "instruction-text")]
+    [ HP.class_ (H.ClassName "slider-state")]
     [ HH.text (show (0 - (round $ state.skew * 100.0)) <> "%") ]
 
 -- | a menu option is a string representing the option and a boolean indicating
@@ -344,7 +338,7 @@ renderPolskaTypeMenu state =
               [ HH.text text]
     in
       HH.div
-        [ HP.class_ (H.ClassName "rightPanelComponent")]
+        [ HP.class_ (H.ClassName "leftPanelComponent")]
         [ HH.label
            [ HP.class_ (H.ClassName "labelAlignment") ]
            [ HH.text "polska type:" ]

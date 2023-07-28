@@ -12,11 +12,19 @@ label {
 	margin-top: 8px;
 }
 
+/* select dropdown on forms */
+select {
+  background-color: #cccc99;
+  margin-top: 8px;   /* match with label */
+  font-size: 1.25em;
+}
+
+
 
 .labelAlignment {
   /* align labels at the LHS of a frame */
   display: inline-block;
-  width: 175px;
+  width: 150px;
   font-size: 1.1em;
 }
 
@@ -42,7 +50,7 @@ label {
 }
 
 .leftPane {
-  width: 650px;
+  width: 450px;
   float: left;
 }
 
@@ -50,11 +58,11 @@ label {
   float: left;
 }
 
-.rightPanelComponent {
-  /* align items in the RHS panel */
-  /* margin: 10px 0 0 0; */
+.leftPanelComponent {
+  /* align items in the LHS panel */
   font-size: 1.2em;
-  font-family: Georgia, serif;
+  font-family: Georgia, serif; 
+  margin: 10px 0 0 0;
 }
 
 #tempo-slider {
@@ -72,8 +80,9 @@ label {
   font-size: 1.0em;
 }
 
-.instruction-component > .instruction-text {
+.slider-state {
   display: inline;
+  margin-left: 5px;
 }
 
 #canvas {
