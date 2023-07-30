@@ -29,6 +29,8 @@ You can edit this file as you like.
   , "prelude"
   , "transformers"
   , "tuples"
+  , "web-events"
+  , "web-html"
   , "webaudio"
   ]
 , packages = ./packages.dhall

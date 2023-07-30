@@ -1,5 +1,5 @@
 body {
-  padding: 0 40px 0 40px;
+  padding: 0 10px 0 10px;
 }
 
 label {
@@ -18,8 +18,6 @@ select {
   margin-top: 8px;   /* match with label */
   font-size: 1.25em;
 }
-
-
 
 .labelAlignment {
   /* align labels at the LHS of a frame */

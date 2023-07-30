@@ -21,10 +21,14 @@ import Halogen.HTML as HH
 import Halogen.HTML.Core (ClassName(..), HTML)
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
+import Halogen.Query.Event (eventListener)
 import Metronome.Audio (BeatMap, loadBeatBuffers, playBeat)
 import Metronome.Beat (Beat(..), BeatNumber(..), Bpm, PolskaType(..), toBeats)
 import Metronome.Drawing (canvasHeight, canvasWidth, markers, metronome)
 import Partial.Unsafe (unsafePartial)
+import Web.HTML (window) as HTML
+import Web.HTML.Window (Window, innerWidth, fromEventTarget, toEventTarget) as Window
+import Web.Event.Event (EventType(..), target) as Event
 
 type Slot = H.Slot Query Void
 
@@ -39,6 +43,7 @@ type State =
   , silentBeatOne :: Boolean
   , isRunning :: Boolean
   , runningMetronome :: Effect Unit
+  , windowWidth :: Int
   }
 
 data Action =
@@ -49,6 +54,7 @@ data Action =
   | ChangeSkew Number
   | ChangePolskaType String
   | MakeBeatTwoSilent Boolean
+  | HandleWindowResize (Maybe Window.Window)
 
 -- the only reason that we need Query at all is that we need to chain
 -- the playing of the metronome after initialisation or after button settings
@@ -84,6 +90,7 @@ component =
     , silentBeatOne : false
     , isRunning : false
     , runningMetronome : mempty
+    , windowWidth : 0
     }
 
   render :: State -> H.ComponentHTML Action () m
@@ -100,6 +107,8 @@ component =
         , renderPolskaTypeMenu state
         , renderTempoSlider state
         , renderSkewSlider state
+        -- temporary
+        , renderWindowWidth state
         ]
       , HH.div
         [ HP.class_ (H.ClassName "rightPane") ]
@@ -116,8 +125,21 @@ component =
     Init -> do
       audioCtx <- H.liftEffect newAudioContext
       beatMap <-  H.liftAff $ loadBeatBuffers audioCtx "assets/audio" ["hightom.mp3", "tom.mp3", "hihat.mp3"]
+      window <- H.liftEffect HTML.window
+      subscriptionId <- H.subscribe do
+        eventListener
+          (Event.EventType "resize")
+          (Window.toEventTarget window)
+          (Event.target >>> map (Window.fromEventTarget >>> HandleWindowResize))
+      windowWidth <- H.liftEffect $ Window.innerWidth window
+
+      let 
+        scale = scaleDisplayToWindow windowWidth
+
       _ <- H.modify (\st -> st { mAudioContext = Just audioCtx
-                               , beatMap = beatMap })
+                               , beatMap = beatMap 
+                               , scale = scale
+                               , windowWidth = windowWidth})
       _ <- handleQuery (StartMetronome unit)
       pure unit
     Start -> do
@@ -149,6 +171,18 @@ component =
       _ <- stopAnimation
       _ <- H.modify (\st -> st { silentBeatOne = makeSilent })
       pure unit
+    HandleWindowResize mWindow -> do 
+      case mWindow of 
+        Just window -> do
+          _ <- stopAnimation
+          windowWidth <- H.liftEffect $ Window.innerWidth window
+          let 
+            scale = scaleDisplayToWindow windowWidth
+          _ <- H.modify (\st -> st { scale = scale     
+                               , windowWidth = windowWidth })
+          pure unit
+        _ -> 
+          pure unit
 
 handleQuery :: ∀ o a m. MonadAff m => Query a -> H.HalogenM State Action () o m (Maybe a)
 handleQuery = case _ of
@@ -320,6 +354,17 @@ renderSkew state =
     [ HP.class_ (H.ClassName "slider-state")]
     [ HH.text (show (0 - (round $ state.skew * 100.0)) <> "%") ]
 
+renderWindowWidth :: ∀ m. State -> H.ComponentHTML Action () m
+renderWindowWidth state =
+  HH.div
+    [ HP.class_ (H.ClassName "leftPanelComponent")]
+    [ HH.label
+      [ HP.class_ (H.ClassName "labelAlignment") ]
+      [ HH.text "window width:" ]
+    , HH.text (show state.windowWidth)
+    ]
+
+
 -- | a menu option is a string representing the option and a boolean indicating
 -- | whether it is selected
 data MenuOption =
@@ -404,3 +449,15 @@ readNumber s =
 scaleDimension :: Int -> Number -> Int 
 scaleDimension dimension scale =
   round (scale * (toNumber dimension))
+
+scaleDisplayToWindow :: Int -> Number
+scaleDisplayToWindow windowWidth = 
+  -- mobiles
+  if windowWidth <= 600 then 
+    0.55
+  -- tablets
+  else if (windowWidth <= 1200) then 
+    0.7
+  -- larger screens
+  else 
+    0.9
