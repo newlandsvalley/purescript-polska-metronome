@@ -260,8 +260,9 @@ skewedMiddleMarker skew isCollided scale =
 
 backdrop :: Number -> Drawing
 backdrop scale
-  = filled
-      (fillColor (graytone 0.8))
+  = filled 
+      -- debug so we can see it - (fillColor (graytone 0.8))
+      (fillColor white)
       (rectangle 0.0 0.0 ((toNumber canvasWidth) * scale) ((toNumber canvasHeight) * scale))
 
 -- | Work out if the moving ball has collided with the narker for the given

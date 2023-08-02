@@ -9,6 +9,7 @@ import Data.Int (fromString, round, toNumber)
 import Data.Map (empty)
 import Data.Maybe (Maybe(..), fromJust, fromMaybe)
 import Data.Number (fromString) as Num
+import Data.Ord (abs)
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Timer (setTimeout)
@@ -44,6 +45,7 @@ type State =
   , isRunning :: Boolean
   , runningMetronome :: Effect Unit
   , windowWidth :: Int
+  , mWindowSubscriptionId :: Maybe H.SubscriptionId
   }
 
 data Action =
@@ -55,6 +57,7 @@ data Action =
   | ChangePolskaType String
   | MakeBeatTwoSilent Boolean
   | HandleWindowResize (Maybe Window.Window)
+  | Finalize
 
 -- the only reason that we need Query at all is that we need to chain
 -- the playing of the metronome after initialisation or after button settings
@@ -91,6 +94,7 @@ component =
     , isRunning : false
     , runningMetronome : mempty
     , windowWidth : 0
+    , mWindowSubscriptionId : Nothing
     }
 
   render :: State -> H.ComponentHTML Action () m
@@ -107,8 +111,8 @@ component =
         , renderPolskaTypeMenu state
         , renderTempoSlider state
         , renderSkewSlider state
-        -- temporary
-        , renderWindowWidth state
+        -- debug only 
+        -- , renderWindowWidth state
         ]
       , HH.div
         [ HP.class_ (H.ClassName "rightPane") ]
@@ -125,6 +129,7 @@ component =
     Init -> do
       audioCtx <- H.liftEffect newAudioContext
       beatMap <-  H.liftAff $ loadBeatBuffers audioCtx "assets/audio" ["hightom.mp3", "tom.mp3", "hihat.mp3"]
+      -- subscribe to window resize events so that we can dynamically change the moving graphics display size
       window <- H.liftEffect HTML.window
       subscriptionId <- H.subscribe do
         eventListener
@@ -139,7 +144,8 @@ component =
       _ <- H.modify (\st -> st { mAudioContext = Just audioCtx
                                , beatMap = beatMap 
                                , scale = scale
-                               , windowWidth = windowWidth})
+                               , windowWidth = windowWidth
+                               , mWindowSubscriptionId = Just subscriptionId})
       _ <- handleQuery (StartMetronome unit)
       pure unit
     Start -> do
@@ -172,16 +178,31 @@ component =
       _ <- H.modify (\st -> st { silentBeatOne = makeSilent })
       pure unit
     HandleWindowResize mWindow -> do 
+      -- if the browser window changes size significantly, scale up/down the dynamic display accordingly 
       case mWindow of 
         Just window -> do
-          _ <- stopAnimation
+          state <- H.get
           windowWidth <- H.liftEffect $ Window.innerWidth window
-          let 
-            scale = scaleDisplayToWindow windowWidth
-          _ <- H.modify (\st -> st { scale = scale     
-                               , windowWidth = windowWidth })
-          pure unit
+          -- primitive debouncing - only register a change of more than 50 pixels since the last width
+          if (abs (windowWidth - state.windowWidth ) > 50) then do
+            let 
+              scale = scaleDisplayToWindow windowWidth
+            _ <- H.modify (\st -> st { scale = scale     
+                                     , windowWidth = windowWidth })
+            _ <- stopAnimation
+            pure unit
+          else
+            pure unit 
         _ -> 
+          pure unit
+    Finalize -> do
+      state <- H.get
+      _ <- stopAnimation
+      -- unsubscribe from the window resize
+      case state.mWindowSubscriptionId of 
+        Just susbscriptionId ->
+          H.unsubscribe susbscriptionId
+        _ ->
           pure unit
 
 handleQuery :: ∀ o a m. MonadAff m => Query a -> H.HalogenM State Action () o m (Maybe a)
@@ -450,14 +471,26 @@ scaleDimension :: Int -> Number -> Int
 scaleDimension dimension scale =
   round (scale * (toNumber dimension))
 
+-- fluid scaling of the dynamic metronome display
 scaleDisplayToWindow :: Int -> Number
 scaleDisplayToWindow windowWidth = 
-  -- mobiles
-  if windowWidth <= 600 then 
-    0.55
-  -- tablets
-  else if (windowWidth <= 1200) then 
-    0.7
-  -- larger screens
-  else 
-    0.9
+  let
+    largeScreenSize = 1600 
+    smallScreenSize = 600 
+    largeScreenScale = 1.0
+    smallScreenScale = 0.55
+
+  in
+    -- mobiles
+    if (windowWidth <= smallScreenSize) then 
+      smallScreenScale
+    -- larger screens
+    else if (windowWidth > largeScreenSize) then 
+      largeScreenScale 
+    -- in between
+    else 
+      smallScreenScale 
+      + ( toNumber (windowWidth - smallScreenSize ) 
+        / toNumber (largeScreenSize - smallScreenSize)
+        * (largeScreenScale - smallScreenScale)
+        )
