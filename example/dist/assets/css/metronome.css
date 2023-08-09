@@ -47,7 +47,7 @@ select {
   text-align: center;
 }
 
-.leftPane {
+#polskaMetronome > .leftPane {
   width: 450px;
   float: left;
 }

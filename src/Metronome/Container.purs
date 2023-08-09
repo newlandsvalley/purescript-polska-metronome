@@ -99,7 +99,8 @@ component =
 
   render :: State -> H.ComponentHTML Action () m
   render state =
-    HH.div_
+    HH.div
+      [ HP.id "polskaMetronome"]
       [ HH.h1
          [HP.class_ (H.ClassName "center") ]
          [HH.text "Polska Metronome" ]

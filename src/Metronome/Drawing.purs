@@ -6,7 +6,7 @@ module Metronome.Drawing
 
 import Metronome.Beat
 
-import Color (Color, rgb, white, graytone)
+import Color (Color, rgb, white)
 import Data.Int (toNumber)
 import Data.Number (cos, pi, sin)
 import Graphics.Drawing (Drawing, circle, fillColor, filled, rectangle)
