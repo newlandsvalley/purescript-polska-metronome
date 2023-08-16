@@ -311,9 +311,9 @@ renderTempoSlider state =
          [ HH.text "change tempo:" ]
 
       , HH.input
-          [ HE.onValueInput (ChangeTempo <<< toTempo)
+          [ HP.class_ (H.ClassName "slider")
+          , HE.onValueInput (ChangeTempo <<< toTempo)
           , HP.type_ HP.InputRange
-          , HP.id "tempo-slider"
           , HP.min 60.0
           , HP.max 240.0
           , HP.value (show state.bpm)
@@ -354,9 +354,9 @@ renderSkewSlider state =
          [ HH.text "move 2nd marker:" ]
 
       , HH.input
-          [ HE.onValueInput (ChangeSkew <<< toSkew state.polskaType)
+          [ HP.class_ (H.ClassName "slider")
+          , HE.onValueInput (ChangeSkew <<< toSkew state.polskaType)
           , HP.type_ HP.InputRange
-          , HP.id "skew-slider"
           , HP.min 0.0
           , HP.max 50.0
           , HP.value (fromSkew state.polskaType state.skew)

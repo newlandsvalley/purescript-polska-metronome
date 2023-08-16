@@ -9,7 +9,7 @@ label {
   width: 100px;
   vertical-align: top;
 	font-size: 1.25em;
-	margin-top: 8px;
+	margin-top: 8px; 
 }
 
 /* select dropdown on forms */
@@ -22,7 +22,7 @@ select {
 .labelAlignment {
   /* align labels at the LHS of a frame */
   display: inline-block;
-  width: 150px;
+  width: 200px;
   font-size: 1.1em;
 }
 
@@ -48,7 +48,7 @@ select {
 }
 
 #polskaMetronome > .leftPane {
-  width: 450px;
+  width: 500px;
   float: left;
 }
 
@@ -63,24 +63,20 @@ select {
   margin: 10px 0 0 0;
 }
 
-#tempo-slider {
+.slider {
   width: 160px;
-  margin-top: 25px;
+	margin-top: 8px; 
 }
 
-#skew-slider {
-  width: 160px;
-  margin-top: 25px;
+.slider-state {
+  display: inline-block;
+  margin-left: 5px;
+	margin-top: 8px; 
 }
 
 #polska-menu {
   background-color: #cccc99;
   font-size: 1.0em;
-}
-
-.slider-state {
-  display: inline;
-  margin-left: 5px;
 }
 
 #canvas {
