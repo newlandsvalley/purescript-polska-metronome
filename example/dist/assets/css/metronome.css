@@ -12,6 +12,7 @@ label {
 	margin-top: 8px;
 }
 
+
 /* select dropdown on forms */
 select {
   background-color: #cccc99;
@@ -47,13 +48,17 @@ select {
   text-align: center;
 }
 
-.leftPane {
-  width: 450px;
-  float: left;
+/* meytronome center encompasses both the controls and the display */
+.metronome-center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 500px;
+  max-width: 100vw;
 }
 
-.rightPane {
-  float: left;
+#metronome-display {
+  width: 750px;
 }
 
 .leftPanelComponent {

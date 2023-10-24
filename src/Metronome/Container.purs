@@ -104,7 +104,9 @@ component =
          [HP.class_ (H.ClassName "center") ]
          [HH.text "Polska Metronome" ]
       , HH.div
-        [ HP.class_ (H.ClassName "leftPane") ]
+        [ HP.class_ (H.ClassName "metronome-center") 
+        , HP.id "metronome-controls" 
+        ]
         [ 
           renderStopStart state
         , renderSilentBeatTwo state
@@ -115,7 +117,9 @@ component =
         -- , renderWindowWidth state
         ]
       , HH.div
-        [ HP.class_ (H.ClassName "rightPane") ]
+        [ HP.class_ (H.ClassName "metronome-center") 
+        , HP.id "metronome-display" 
+        ]
         [ HH.canvas
             [ HP.id "canvas"
             , HP.height (scaleDimension canvasHeight state.scale)
@@ -375,6 +379,7 @@ renderSkew state =
     [ HP.class_ (H.ClassName "slider-state")]
     [ HH.text (show (0 - (round $ state.skew * 100.0)) <> "%") ]
 
+{- debug only 
 renderWindowWidth :: ∀ m. State -> H.ComponentHTML Action () m
 renderWindowWidth state =
   HH.div
@@ -384,7 +389,7 @@ renderWindowWidth state =
       [ HH.text "window width:" ]
     , HH.text (show state.windowWidth)
     ]
-
+-}
 
 -- | a menu option is a string representing the option and a boolean indicating
 -- | whether it is selected
@@ -476,9 +481,9 @@ scaleDisplayToWindow :: Int -> Number
 scaleDisplayToWindow windowWidth = 
   let
     largeScreenSize = 1600 
-    smallScreenSize = 600 
+    smallScreenSize = 400 
     largeScreenScale = 1.0
-    smallScreenScale = 0.55
+    smallScreenScale = 0.5
 
   in
     -- mobiles
