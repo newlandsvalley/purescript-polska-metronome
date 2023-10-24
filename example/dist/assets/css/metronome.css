@@ -48,7 +48,7 @@ select {
   text-align: center;
 }
 
-/* meytronome center encompasses both the controls and the display */
+/* metronome center encompasses both the controls and the display */
 .metronome-center {
   display: block;
   margin-left: auto;
