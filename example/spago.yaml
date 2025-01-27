@@ -1,0 +1,8 @@
+package:
+  name: example
+  dependencies:
+    - aff
+    - console
+    - effect
+    - polska-metronome
+    - halogen

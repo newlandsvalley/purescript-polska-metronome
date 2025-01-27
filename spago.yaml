@@ -1,0 +1,56 @@
+package:
+  dependencies:
+    - aff
+    - affjax
+    - affjax-web
+    - arrays
+    - canvas
+    - colors
+    - datetime
+    - drawing
+    - effect
+    - either
+    - foldable-traversable
+    - halogen
+    - http-methods
+    - hyrule
+    - integers
+    - js-timers
+    - maybe
+    - newtype
+    - numbers
+    - ordered-collections
+    - parallel
+    - partial
+    - prelude
+    - transformers
+    - tuples
+    - web-events
+    - web-html
+    - webaudio
+  name: polska-metronome
+workspace:
+  extraPackages:
+    drawing:
+      dependencies:
+        - canvas
+        - colors
+        - integers
+        - lists
+        - numbers
+      git: https://github.com/newlandsvalley/purescript-drawing
+      ref: v6.0.0
+    webaudio:
+      dependencies:
+        - aff
+        - arraybuffer
+        - arraybuffer-types
+        - effect
+        - maybe
+        - prelude
+        - psci-support
+        - web-events
+      git: https://github.com/newlandsvalley/purescript-webaudio
+      ref: ps015
+  packageSet:
+    registry: 62.3.2
