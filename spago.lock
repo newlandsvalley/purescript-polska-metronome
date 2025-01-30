@@ -770,7 +770,7 @@
     "extra_packages": {
       "drawing": {
         "git": "https://github.com/newlandsvalley/purescript-drawing",
-        "ref": "v6.0.0",
+        "ref": "ffd178fa3f6e1ddc94ae7b3651c959b965b3a657",
         "dependencies": [
           "canvas",
           "colors",
@@ -1077,7 +1077,7 @@
     "drawing": {
       "type": "git",
       "url": "https://github.com/newlandsvalley/purescript-drawing",
-      "rev": "7db550ceff2d4d98093ba87a915dfe76dcd3b4ab",
+      "rev": "ffd178fa3f6e1ddc94ae7b3651c959b965b3a657",
       "dependencies": [
         "canvas",
         "colors",

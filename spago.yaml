@@ -39,7 +39,7 @@ workspace:
         - lists
         - numbers
       git: https://github.com/newlandsvalley/purescript-drawing
-      ref: v6.0.0
+      ref: ffd178fa3f6e1ddc94ae7b3651c959b965b3a657
     webaudio:
       dependencies:
         - aff
