@@ -315,6 +315,6 @@ movingMarkers polskaType isActive skew beat scale =
 -- | Draw the active metronome at the particular beat in question.
 -- | although bpm is not used, we retain it in case we can improve collision detection
 metronome :: PolskaType -> Number -> Bpm -> Beat -> Number -> Drawing
-metronome polskaType skew bpm beat scale =
+metronome polskaType skew _bpm beat scale =
   movingMarkers polskaType true skew beat scale
     <> movingCircle polskaType skew beat scale

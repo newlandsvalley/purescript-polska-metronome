@@ -7,7 +7,6 @@ package:
     - canvas
     - colors
     - datetime
-    - drawing
     - effect
     - either
     - foldable-traversable
@@ -19,6 +18,7 @@ package:
     - maybe
     - newtype
     - numbers
+    - open-drawing
     - ordered-collections
     - parallel
     - partial
@@ -31,15 +31,6 @@ package:
   name: polska-metronome
 workspace:
   extraPackages:
-    drawing:
-      dependencies:
-        - canvas
-        - colors
-        - integers
-        - lists
-        - numbers
-      git: https://github.com/newlandsvalley/purescript-drawing
-      ref: ffd178fa3f6e1ddc94ae7b3651c959b965b3a657
     webaudio:
       dependencies:
         - aff
@@ -53,4 +44,4 @@ workspace:
       git: https://github.com/newlandsvalley/purescript-webaudio
       ref: ps015
   packageSet:
-    registry: 62.3.2
+    registry: 66.3.0
