@@ -75,7 +75,9 @@ select {
 }
 
 #polska-menu {
-  background-color: #cccc99;
+  appearance: none;
+  padding: 0.25em 0.5em 0.25em 0.5em;
+  background-color: #67d665;  /* lighter green */
   font-size: 1.0em;
 }
 
