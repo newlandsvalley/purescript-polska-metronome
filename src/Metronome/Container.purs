@@ -19,7 +19,7 @@ import Graphics.Canvas (Context2D, getCanvasElementById, getContext2D)
 import Graphics.Drawing (render) as Drawing
 import Halogen as H
 import Halogen.HTML as HH
-import Halogen.HTML.Core (ClassName(..), HTML)
+import Halogen.HTML.Core (ClassName(..))
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Halogen.Query.Event (eventListener)
@@ -399,36 +399,37 @@ data MenuOption =
 
 renderPolskaTypeMenu :: ∀ m. State -> H.ComponentHTML Action () m
 renderPolskaTypeMenu state =
-    let
-      f :: ∀ p i. MenuOption -> HTML p i
-      f mo =
-        case mo of
-          MenuOption text selected ->
-            HH.option
-              [ HP.selected selected
-              , HP.value text ]
-              [ HH.text text]
-    in
-      HH.div
-        [ HP.class_ (H.ClassName "leftPanelComponent")]
-        [ HH.label
-           [ HP.class_ (H.ClassName "labelAlignment") ]
-           [ HH.text "polska type:" ]
-        , HH.select
-            [ HP.class_ $ ClassName "selection"
-            , HE.onValueChange (ChangePolskaType)
-            , HP.id  "polska-menu"
-            , HP.value (show state.polskaType)
-            ]
-            (map f $ polskaTypeOptions state.polskaType)
-        ]
-
-polskaTypeOptions :: PolskaType -> Array MenuOption
-polskaTypeOptions polskaType =
-  [ MenuOption (show ShortFirst) (polskaType == ShortFirst)
-  , MenuOption (show LongFirst) (polskaType == LongFirst)
-  , MenuOption (show Finnskogpols) (polskaType == Finnskogpols)
+  let
+    default = show state.polskaType
+  in
+    HH.div
+      [ HP.class_ (H.ClassName "leftPanelComponent")]
+      [ HH.label
+         [ HP.class_ (H.ClassName "labelAlignment") ]
+         [ HH.text "polska type:" ]
+      , HH.select
+          [ HP.class_ $ ClassName "selection"
+          , HE.onValueChange (ChangePolskaType)
+          , HP.id  "polska-menu"
+          , HP.value default
+          ]
+          (polskaTypeOptions default)
+      ]
+  
+polskaTypeOptions :: forall i p. String -> Array (HH.HTML i p)
+polskaTypeOptions default =     
+  [ menuOption $ show ShortFirst
+  , menuOption $ show LongFirst
+  , menuOption $ show Finnskogpols
   ]
+
+  where
+
+  menuOption :: String -> HH.HTML i p
+  menuOption next =
+    HH.option
+      [ HP.disabled (next == default) ]
+      [ HH.text next ]
 
 
 stopAnimation :: ∀ m.
